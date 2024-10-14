@@ -1,0 +1,23 @@
+  button {
+        margin-left: 1rem;
+    }
+
+    .checked {
+        color: grey;
+        text-decoration: line-through;
+    }
+
+    li {
+        margin-top: 0.5rem;
+    }
+
+    ul {
+        list-style: none; /* removes bullets */
+        margin-left: 0;
+        padding-left: 0;
+    }
+
+    .main {
+        /*display: flex;*/
+        /*align-items: center;*/
+    }

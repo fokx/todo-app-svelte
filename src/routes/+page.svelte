@@ -1,56 +1,99 @@
 <script>
+	import { fade } from 'svelte/transition';
+	import { onMount } from 'svelte';
+	import { liveQuery } from 'dexie';
+	import { db } from '$lib/db.js';
+
 	let newItem = $state('');
 
-	let todoList = $state([{ text: 'My undone TODO 1', done: false },
-		{ text: 'My undone TODO 2', done: false },
-		{ text: 'My done TODO 1', done: true },
-		{ text: 'My done TODO 2', done: true }
-	]);
+	let todoListNotDeleted = liveQuery(() =>
+			db.todos.where({ 'deleted': 'false' }).toArray()
+		// async () => {return await db.todos.where("deleted").equals('false').toArray()}
+	);
 
-	function addToList() {
-		todoList = [...todoList, { text: newItem, done: false }];
-		newItem = '';
-	}
-	function deleteCompleted() {
-		if (window.confirm("Do you really want to delete all completed TODOs?")) {
-			todoList = todoList.filter(t => !t.done);
+	function handleKeydown(e) {
+		if (newItem && e.key === 'Enter') {
+			addToList();
 		}
 	}
 
+	async function addToList() {
+		// try {
+		const id = db.todos.add({
+			text: newItem,
+			done: 'false',
+			deleted: 'false'
+		});
+		console.log(`added ${newItem} with id ${id}`);
 
-	function removeFromList(index) {
-		todoList.splice(index, 1);
+		newItem = '';
+
 	}
 
-	// This is recomputed when the todos array changes.
-	let uncompletedCount = $derived(todoList.filter(t => !t.done).length);
-	let status = $derived(`${uncompletedCount} out of ${todoList.length} remaining`);
+	function deleteCompleted() {
+		if (window.confirm('Do you really want to delete all completed TODOs?')) {
+			db.todos.where({ 'deleted': false }).filter(t => t.done).modify({ deleted: true });
+		}
+	}
+
+	function deleteTodo(index) {
+		db.todos.filter(t => t.id === index).modify({ deleted: 'true' });
+	}
+
+	function updateDone(ev, index) {
+		db.todos.update(index, { done: ev.target.checked.toString() });
+		console.log(`update ${index} to ${ev.target.checked}`);
+	}
+
+	function editTodo(index) {
+		// todoList.splice(index, 1);
+	}
+
+	let uncompletedCount = liveQuery(
+		() => db.todos.where({ 'deleted': 'false', 'done': 'false' }).count()
+	);
+	let status = $derived(`${$uncompletedCount} out of ${$todoListNotDeleted} TODO(s) unfinished`);
+
+	onMount(() => {
+		if (!window.indexedDB) {
+			alert('Unsupported Browser: Indexed DB is not supported!');
+		}
+	});
+
+	function doalert(checkboxElem) {
+		if (checkboxElem.checked) {
+			alert('hi');
+		} else {
+			alert('bye');
+		}
+	}
 
 </script>
+
+<style>
+    @import '$lib/styles.css';
+</style>
 
 <div class="main">
 	<h3>My TODO list</h3>
 	<p>{status}</p>
-	<input bind:value={newItem} type="text" placeholder="new todo item..">
+	<input bind:value={newItem} type="text" placeholder="new todo item.." onkeydown={handleKeydown} />
 	<button onclick={addToList} disabled={!newItem}>Add</button>
-	<button onclick={deleteCompleted}>Delete all completed</button>
+	<button onclick={deleteCompleted}>Remove all TODOs completed</button>
 	<br />
-	{#each todoList as item, index}
-		<input bind:checked={item.done} type="checkbox">
-		<span class:checked={item.done}>{item.text}</span>
-		<button onclick={() => removeFromList(index)}>❌</button>
-		<br />
-	{/each}
+	<ul>
+		{#if $todoListNotDeleted}
+			{#each $todoListNotDeleted as todo, index (todo.id)}
+				<li transition:fade={{  duration: 100}}>
+					<input onclick={(ev) => updateDone(ev, todo.id)} type="checkbox" />
+					<span class:checked={todo.done === "true"}>{todo.text}</span>
+					<button onclick={() => deleteTodo(todo.id)}>Remove</button>
+					<button onclick={() => editTodo(todo.id)}>Edit</button>
+					<br />
+				</li>
+			{/each}
+		{/if}
+	</ul>
+
 </div>
 
-
-<style>
-    .checked {
-        text-decoration: line-through;
-    }
-
-    .main {
-        /*display: flex;*/
-        /*align-items: center;*/
-    }
-</style>
