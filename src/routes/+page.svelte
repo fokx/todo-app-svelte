@@ -69,7 +69,7 @@
 </style>
 
 
-<div class="main">
+<div class="centered">
 
 	<div class="header-login">
 		{#if user != null}
@@ -82,7 +82,7 @@
 				user = null;
 			};
 		}}>
-				<button>Sign out</button>
+				<button aria-label="Sign out">Sign out</button>
 			</form>
 			{#if logging_out}
 				<span class="logging-in-out">logging you out...</span>
@@ -95,7 +95,7 @@
 				await update();
 			};
 		}}>
-				<button>Sign in</button>
+				<button aria-label="Sign in">Sign in</button>
 			</form>
 			{#if logging_in}
 				<span class="logging-in-out">signing you in...</span>
@@ -106,12 +106,15 @@
 
 	<p>{status}</p>
 	<input bind:value={newItem} onkeydown={handleKeydown} placeholder="new todo item.." type="text" />
-	<button disabled={!newItem} onclick={addToList}>Add</button>
-	<button disabled={!($todoListNotDeletedCount-$uncompletedCount)} onclick={deleteCompleted}>Remove all TODOs
-		completed
-	</button>
+	<button aria-label="Add" disabled={!newItem} onclick={addToList}>Add</button>
+
 	<br />
 	<Todo bind:todos={$todoListNotDeleted} />
-	<a href="/deleted">Deleted Todos</a>
+
+	<button onclick={() => location.href='/deleted'} type="button">View deleted</button>
+
+	<button aria-label="Remove all completed" disabled={!($todoListNotDeletedCount-$uncompletedCount)}
+					onclick={deleteCompleted}>Remove all completed
+	</button>
 </div>
 

@@ -2,7 +2,6 @@ import { github } from '$lib/server/auth';
 import { generateState } from 'arctic';
 import { redirect } from '@sveltejs/kit';
 
-
 export async function GET(event) {
 	const state = generateState();
 	const scopes = ['read:user']; // "user:email", "repo"

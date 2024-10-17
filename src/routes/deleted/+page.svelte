@@ -4,8 +4,19 @@
     import {dbDexie} from "$lib/db-dexie.js";
 
     let todoListDeleted = liveQuery(() =>
-            dbDexie.todos.where({'deleted': 'true'}).toArray()
-        // async () => {return await dbDexie.todos.where("deleted").equals('false').toArray()}
+        dbDexie.todos.where({'deleted': 'true'}).toArray()
     );
 </script>
-<Todo bind:todos={$todoListDeleted} isDeletedListPage={true}/>
+
+<div class="centered">
+
+    <p>Deleted TODOs:</p>
+    <hr>
+    {#if $todoListDeleted}
+        <Todo bind:todos={$todoListDeleted} isDeletedListPage={true}/>
+    {:else }
+        <p>---None---</p>
+    {/if}
+    <a href="/">Return to Main Page</a>
+
+</div>

@@ -36,7 +36,7 @@
 
 </script>
 
-<ul>
+<ul class="todos">
     {#if todos}
         {#each todos as todo, index (todo.id)}
             <li transition:fade={{  duration: 100}}>
@@ -45,8 +45,8 @@
                 {/if}
                 <span class:checked={todo.done === 'true'}>{todo.text}</span>
                 {#if !isDeletedListPage}
-                    <button onclick={() => deleteTodo(todo.id)}>Remove</button>
-                    <button onclick={() => editTodo(todo.id)}>Edit</button>
+                    <button class="remove-button" onclick={() => deleteTodo(todo.id)}>Remove</button>
+                    <button class="edit-button" onclick={() => editTodo(todo.id)}>Edit</button>
                 {/if}
                 <br/>
             </li>

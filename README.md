@@ -29,3 +29,9 @@ pnpm run build
 You can preview the production build with `pnpm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+
+## Small bugs and caveats
+* in `/deleted` page, `---None---` is not shown when there is no deleted todos, which is unexpected and wierd.
+* after click the sign-in button, the sign-in button does not disappear.
+* deletion icon not working, which is borrowed from [svelte tutorial](https://learn.svelte.dev/tutorial/progressive-enhancement).
+* dark mode not work temporarily

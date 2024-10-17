@@ -4,7 +4,6 @@ import { dev } from '$app/environment';
 import { db } from './db-lucia';
 import { GitHub } from 'arctic';
 import { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_REDIRECT_URL } from '$env/static/private';
-import { page } from '$app/stores';
 
 const adapter = new BetterSqlite3Adapter(db, {
 	user: 'user',
