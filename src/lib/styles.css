@@ -49,3 +49,9 @@ ul {
     /*display: flex;*/
     /*align-items: center;*/
 }
+
+.header-login {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}

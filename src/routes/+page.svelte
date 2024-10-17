@@ -4,6 +4,7 @@
 	import { liveQuery } from 'dexie';
 	import { dbDexie } from '$lib/db-dexie.js';
 	import { enhance } from '$app/forms';
+	import Signin from '$lib/components/auth/sign-in.svelte';
 
 	/** @type {import('./$types').PageData} */
 	let data = $props();
@@ -101,16 +102,21 @@
     @import '$lib/styles.css';
 </style>
 
-<h1>Hi, {user.username}!</h1>
-<p>Your user ID is {user.id}.</p>
-<p>Your github ID is {user.githubId}.</p>
-<form method="post" use:enhance>
-	<button>Sign out</button>
-</form>
-
 
 <div class="main">
-	<h3>My TODO list</h3>
+
+	<div class="header-login">
+		{#if user != null}
+			<h2>{user.username}'s TODO List</h2>
+			<form method="post" use:enhance>
+				<button>Sign out</button>
+			</form>
+		{:else}
+			<Signin />
+		{/if}
+	</div>
+
+
 	<p>{status}</p>
 	<input bind:value={newItem} onkeydown={handleKeydown} placeholder="new todo item.." type="text" />
 	<button disabled={!newItem} onclick={addToList}>Add</button>
