@@ -21,8 +21,7 @@ export async function GET(event) {
 			}
 		});
 		const githubUser = await githubUserResponse.json();
-		const existingUser = db.prepare("SELECT * FROM user WHERE github_id = ?").get(githubUser.id)
-			| undefined;
+		const existingUser = db.prepare("SELECT * FROM user WHERE github_id = ?").get(githubUser.id);
 
 		if (existingUser) {
 			const session = await lucia.createSession(existingUser.id, {});
@@ -60,6 +59,6 @@ export async function GET(event) {
 		}
 		return new Response(null, {
 			status: 500
-		});
+		}	);
 	}
 }

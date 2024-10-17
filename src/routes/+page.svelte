@@ -7,14 +7,8 @@
 
 	/** @type {import('./$types').PageData} */
 	let data = $props();
+	let user = $state(data.data.user);
 
-	console.log(data);
-	console.log(data.data.user);
-	console.log(data.data.user.username);
-
-	$effect(() => {
-		console.log('data changed: ', data);
-	});
 	let newItem = $state('');
 
 	let todoListNotDeleted = liveQuery(() =>
@@ -35,8 +29,6 @@
 			done: 'false',
 			deleted: 'false'
 		});
-		console.log(`added ${newItem} with id ${id}`);
-
 		newItem = '';
 
 	}
@@ -52,18 +44,15 @@
 		await dbDexie.todos.get({ id: index }).then(function(result) {
 			if (result.done !== 'true' && !window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?')) {
 				should_delete = false;
-				console.log('should not delete');
 			}
 		});
 		if (should_delete === true) {
-			console.log(`delete ${index}`);
 			dbDexie.todos.filter(t => t.id === index).modify({ deleted: 'true' });
 		}
 	}
 
 	function updateDone(ev, index) {
 		dbDexie.todos.update(index, { done: ev.target.checked.toString() });
-		console.log(`update ${index} to ${ev.target.checked}`);
 	}
 
 	async function editTodo(index) {
@@ -113,9 +102,9 @@
     @import '$lib/styles.css';
 </style>
 
-<h1>Hi, {data.data.user.username}!</h1>
-<p>Your user ID is {data.data.user.id}.</p>
-<p>Your github ID is {data.data.user.githubId}.</p>
+<h1>Hi, {user.username}!</h1>
+<p>Your user ID is {user.id}.</p>
+<p>Your github ID is {user.githubId}.</p>
 <form method="post" use:enhance>
 	<button>Sign out</button>
 </form>
