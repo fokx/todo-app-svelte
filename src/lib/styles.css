@@ -1,23 +1,49 @@
-  button {
-        margin-left: 1rem;
+html {
+    color-scheme: light dark;
+}
+
+:root {
+    --color: #000000;
+    --bg-color: #fef5e4;
+}
+
+body{
+    background-color: var(--bg-color);
+    color: var(--color);
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color: #acacac;
+        --bg-color: #2a2b2e;
     }
 
-    .checked {
-        color: grey;
-        text-decoration: line-through;
+    @media (prefers-color-scheme: light) {
+        :root {
+            --color: #212529;
+            --bg-color: #fef5e4;
+        }
     }
+}
+button {
+    margin-left: 1rem;
+}
 
-    li {
-        margin-top: 0.5rem;
-    }
+.checked {
+    color: grey;
+    text-decoration: line-through;
+}
 
-    ul {
-        list-style: none; /* removes bullets */
-        margin-left: 0;
-        padding-left: 0;
-    }
+li {
+    margin-top: 0.5rem;
+}
 
-    .main {
-        /*display: flex;*/
-        /*align-items: center;*/
-    }
+ul {
+    list-style: none; /* removes bullets */
+    margin-left: 0;
+    padding-left: 0;
+}
+
+.main {
+    /*display: flex;*/
+    /*align-items: center;*/
+}
