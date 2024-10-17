@@ -7,10 +7,11 @@ html {
     --bg-color: #fef5e4;
 }
 
-body{
+body {
     background-color: var(--bg-color);
     color: var(--color);
 }
+
 @media (prefers-color-scheme: dark) {
     :root {
         --color: #acacac;
@@ -24,6 +25,7 @@ body{
         }
     }
 }
+
 button {
     margin-left: 1rem;
 }

@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import { liveQuery } from 'dexie';
 	import { dbDexie } from '$lib/db-dexie.js';
-	import { enhance } from "$app/forms";
+	import { enhance } from '$app/forms';
 
 	/** @type {import('./$types').PageData} */
 	let data = $props();
@@ -23,7 +23,6 @@
 	}
 
 	async function addToList() {
-		// try {
 		const id = dbDexie.todos.add({
 			text: newItem,
 			done: 'false',
@@ -59,7 +58,7 @@
 		// todoList.splice(index, 1);
 		await dbDexie.todos.get({ id: index }).then(function(result) {
 			let new_text = prompt(`Change "${result.text}" to:`, result.text);
-			if (new_text !== null && new_text !== "") {
+			if (new_text !== null && new_text !== '') {
 				dbDexie.todos.update(index, { text: new_text });
 			}
 		});
@@ -113,9 +112,9 @@
 <div class="main">
 	<h3>My TODO list</h3>
 	<p>{status}</p>
-	<input bind:value={newItem} type="text" placeholder="new todo item.." onkeydown={handleKeydown} />
-	<button onclick={addToList} disabled={!newItem}>Add</button>
-	<button onclick={deleteCompleted} disabled={!($todoListNotDeletedCount-$uncompletedCount)}>Remove all TODOs
+	<input bind:value={newItem} onkeydown={handleKeydown} placeholder="new todo item.." type="text" />
+	<button disabled={!newItem} onclick={addToList}>Add</button>
+	<button disabled={!($todoListNotDeletedCount-$uncompletedCount)} onclick={deleteCompleted}>Remove all TODOs
 		completed
 	</button>
 	<br />
