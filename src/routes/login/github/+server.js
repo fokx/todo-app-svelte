@@ -5,7 +5,7 @@ import { redirect } from '@sveltejs/kit';
 
 export async function GET(event) {
 	const state = generateState();
-	const scopes = ['read:user'];
+	const scopes = ['read:user']; // "user:email", "repo"
 
 	const url = github.createAuthorizationURL(state, scopes);
 

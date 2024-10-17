@@ -1,15 +1,15 @@
 <script>
-	import { fade } from 'svelte/transition';
 	import { onMount } from 'svelte';
 	import { liveQuery } from 'dexie';
 	import { dbDexie } from '$lib/db-dexie.js';
 	import { enhance } from '$app/forms';
-	import Signin from '$lib/components/auth/sign-in.svelte';
+	import Todo from '$lib/components/todo-list.svelte';
 
 	/** @type {import('./$types').PageData} */
 	let data = $props();
 	let user = $state(data.data.user);
-
+	let logging_out = $state(false);
+	let logging_in = $state(false);
 	let newItem = $state('');
 
 	let todoListNotDeleted = liveQuery(() =>
@@ -30,7 +30,6 @@
 			deleted: 'false'
 		});
 		newItem = '';
-
 	}
 
 	function deleteCompleted() {
@@ -39,31 +38,6 @@
 		}
 	}
 
-	async function deleteTodo(index) {
-		let should_delete = true;
-		await dbDexie.todos.get({ id: index }).then(function(result) {
-			if (result.done !== 'true' && !window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?')) {
-				should_delete = false;
-			}
-		});
-		if (should_delete === true) {
-			dbDexie.todos.filter(t => t.id === index).modify({ deleted: 'true' });
-		}
-	}
-
-	function updateDone(ev, index) {
-		dbDexie.todos.update(index, { done: ev.target.checked.toString() });
-	}
-
-	async function editTodo(index) {
-		// todoList.splice(index, 1);
-		await dbDexie.todos.get({ id: index }).then(function(result) {
-			let new_text = prompt(`Change "${result.text}" to:`, result.text);
-			if (new_text !== null && new_text !== '') {
-				dbDexie.todos.update(index, { text: new_text });
-			}
-		});
-	}
 
 	let uncompletedCount = liveQuery(
 		() => dbDexie.todos.where({ 'deleted': 'false', 'done': 'false' }).count()
@@ -88,14 +62,6 @@
 		}
 	});
 
-	function doalert(checkboxElem) {
-		if (checkboxElem.checked) {
-			alert('hi');
-		} else {
-			alert('bye');
-		}
-	}
-
 </script>
 
 <style>
@@ -108,11 +74,32 @@
 	<div class="header-login">
 		{#if user != null}
 			<h2>{user.username}'s TODO List</h2>
-			<form method="post" use:enhance>
+			<form method="post" action="?/logout" use:enhance={() => {
+			logging_out = true;
+			return async ({ update }) => {
+				await update();
+				logging_out = false;
+				user = null;
+			};
+		}}>
 				<button>Sign out</button>
 			</form>
+			{#if logging_out}
+				<span class="logging-in-out">logging you out...</span>
+			{/if}
 		{:else}
-			<Signin />
+			<h2>My TODO List</h2>
+			<form method="post" action="?/login" use:enhance={() => {
+			logging_in = true;
+			return async ({ update }) => {
+				await update();
+			};
+		}}>
+				<button>Sign in</button>
+			</form>
+			{#if logging_in}
+				<span class="logging-in-out">signing you in...</span>
+			{/if}
 		{/if}
 	</div>
 
@@ -124,19 +111,7 @@
 		completed
 	</button>
 	<br />
-	<ul>
-		{#if $todoListNotDeleted}
-			{#each $todoListNotDeleted as todo, index (todo.id)}
-				<li transition:fade={{  duration: 100}}>
-					<input checked={todo.done === 'true'} onclick={(ev) => updateDone(ev, todo.id)} type="checkbox" />
-					<span class:checked={todo.done === 'true'}>{todo.text}</span>
-					<button onclick={() => deleteTodo(todo.id)}>Remove</button>
-					<button onclick={() => editTodo(todo.id)}>Edit</button>
-					<br />
-				</li>
-			{/each}
-		{/if}
-	</ul>
-
+	<Todo bind:todos={$todoListNotDeleted} />
+	<a href="/deleted">Deleted Todos</a>
 </div>
 

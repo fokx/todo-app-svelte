@@ -1,6 +1,5 @@
 import { lucia } from '$lib/server/auth';
 import { fail, redirect } from '@sveltejs/kit';
-import { invalidateAll } from '$app/navigation';
 
 /** @type {import('./$types').PageServerLoad} */
 export const load = async (event) => {
@@ -13,7 +12,7 @@ export const load = async (event) => {
 };
 
 export const actions = {
-	default: async (event) => {
+	logout: async (event) => {
 		if (!event.locals.session) {
 			return fail(401);
 		}
@@ -23,7 +22,11 @@ export const actions = {
 			path: '.',
 			...sessionCookie.attributes
 		});
-		// return redirect(302, '/');
-		invalidateAll();
+		// return redirect(302, '/logout');
+	},
+	login: async (event) => {
+		await redirect(302, '/login/github');
 	}
 };
+
+
