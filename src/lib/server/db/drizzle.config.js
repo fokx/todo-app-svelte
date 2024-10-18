@@ -1,5 +1,4 @@
 import * as dotenv from 'dotenv';
-import type {Config} from 'drizzle-kit';
 
 dotenv.config();
 
@@ -11,5 +10,3 @@ export default {
     },
     out: './src/lib/server/dbDexie/migrations'
 };
-satisfies;
-Config;

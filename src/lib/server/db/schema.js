@@ -1,5 +1,5 @@
 import {integer, sqliteTable, text} from 'drizzle-orm/sqlite-core';
-import {generateId} from './utils';
+import { generateId } from 'lucia';
 
 const timestamp = {
     createdAt: integer('created_at', {mode: 'timestamp'})

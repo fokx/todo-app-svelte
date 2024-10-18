@@ -11,12 +11,12 @@
     async function deleteTodo(index) {
         let should_delete = true;
         await dbDexie.todos.get({id: index}).then(function (result) {
-            if (result.done !== 'true' && !window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?')) {
+            if (!result.done && !window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?')) {
                 should_delete = false;
             }
         });
         if (should_delete === true) {
-            dbDexie.todos.filter(t => t.id === index).modify({deleted: 'true'});
+            dbDexie.todos.filter(t => t.id === index).modify({deleted: true});
         }
     }
 
@@ -41,9 +41,9 @@
         {#each todos as todo, index (todo.id)}
             <li transition:fade={{  duration: 100}}>
                 {#if !isDeletedListPage}
-                    <input checked={todo.done === 'true'} onclick={(ev) => updateDone(ev, todo.id)} type="checkbox"/>
+                    <input checked={todo.done} onclick={(ev) => updateDone(ev, todo.id)} type="checkbox"/>
                 {/if}
-                <span class:checked={todo.done === 'true'}>{todo.text}</span>
+                <span class:checked={todo.done}>{todo.text}</span>
                 {#if !isDeletedListPage}
                     <button class="remove-button" onclick={() => deleteTodo(todo.id)}>Remove</button>
                 {/if}
@@ -51,5 +51,7 @@
                 <br/>
             </li>
         {/each}
+    {:else }
+        <p>---Nothing yet---</p>
     {/if}
 </ul>

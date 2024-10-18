@@ -6,16 +6,25 @@
     import Todo from '$lib/components/todo-list.svelte';
 
     /** @type {import('./$types').PageData} */
-    let data = $props();
-    let user = $state(data.data.user);
+    let {data} = $props();
+    let user = $state(data.user);
     let logging_out = $state(false);
     let logging_in = $state(false);
     let newItem = $state('');
-
-    let todoListNotDeleted = liveQuery(() =>
-            dbDexie.todos.where({'deleted': 'false'}).toArray()
-        // async () => {return await dbDexie.todos.where("deleted").equals('false').toArray()}
+    let todoList = liveQuery(() =>
+            dbDexie.todos.toArray()
+        // async () => {return await dbDexie.todos.where("deleted").equals('false').toArray()} // where({'deleted': 'false'})
     );
+
+    let todoListNotDeleted = $state();
+    let todoListNotDeletedUncompletedCount = $state();
+    let todoListNotDeletedCount = $state();
+    todoList.subscribe((todos) => {
+        todoListNotDeleted = todos.filter(t => !t.deleted);
+        todoListNotDeletedUncompletedCount = todos.filter(t => !t.deleted).filter(t => !t.done).length;
+        todoListNotDeletedCount = todos.filter(t => !t.deleted).length;
+    });
+
 
     function handleKeydown(e) {
         if (newItem && e.key === 'Enter') {
@@ -26,33 +35,30 @@
     async function addToList() {
         const id = dbDexie.todos.add({
             text: newItem,
-            done: 'false',
-            deleted: 'false'
+            done: false,
+            deleted: false,
+            synced: false
         });
         newItem = '';
     }
 
     function deleteCompleted() {
         if (window.confirm('Do you really want to delete all completed TODOs?')) {
-            dbDexie.todos.where({'deleted': 'false'}).filter(t => t.done === 'true').modify({deleted: 'true'});
+            todoListNotDeleted.forEach(todo => {
+                if (todo.done) {
+                    dbDexie.todos.filter(t => t.id === todo.id).modify({deleted: true});
+                }
+            });
         }
     }
 
 
-    let uncompletedCount = liveQuery(
-        () => dbDexie.todos.where({'deleted': 'false', 'done': 'false'}).count()
-    );
-
-    let todoListNotDeletedCount = liveQuery(
-        () => dbDexie.todos.where({'deleted': 'false'}).count()
-    );
-
-    let todo_s_text = $derived('TODO' + ($todoListNotDeletedCount > 1 ? 's' : ''));
+    let todo_s_text = $derived('TODO' + (todoListNotDeletedCount > 1 ? 's' : ''));
     let count_status = $derived((
-        ($todoListNotDeletedCount > 0 ?
-            ($uncompletedCount > 0 ?
-                `${$uncompletedCount} out of ${$todoListNotDeletedCount} ${todo_s_text} unfinished`
-                : ($todoListNotDeletedCount === 1 ? 'The only' : 'All') + ` ${$todoListNotDeletedCount} ${todo_s_text} finished`) : '')
+        (todoListNotDeletedCount > 0 ?
+            (todoListNotDeletedUncompletedCount > 0 ?
+                `${todoListNotDeletedUncompletedCount} out of ${todoListNotDeletedCount} ${todo_s_text} unfinished`
+                : (todoListNotDeletedCount === 1 ? 'The only' : 'All') + ` ${todoListNotDeletedCount} ${todo_s_text} finished`) : '')
 
     ));
 
@@ -67,7 +73,6 @@
 <style>
     @import '$lib/styles.css';
 </style>
-
 
 <div class="centered">
     <div class="header-login">
@@ -107,16 +112,17 @@
     <input bind:value={newItem} onkeydown={handleKeydown} placeholder="new todo item.." type="text"/>
     <button aria-label="Add" disabled={!newItem} onclick={addToList}>Add</button>
     <br/>
-    <Todo bind:todos={$todoListNotDeleted}/>
+    <Todo bind:todos={todoListNotDeleted}/>
     <button aria-label="View deleted TODOs" onclick={() => location.href='/deleted'} type="button">View deleted</button>
-    <button aria-label="Remove all completed TODOs" disabled={!($todoListNotDeletedCount-$uncompletedCount)}
+    <button aria-label="Remove all completed TODOs"
+            disabled={!(todoListNotDeletedCount-todoListNotDeletedUncompletedCount)}
             onclick={deleteCompleted}>Remove all completed
     </button>
 
-    {#if user == null}
+    {#if user === null}
         <p>Note: Your TODOs are stored in your browser's local storage and will get <strong>lost</strong> when you clear
             browsing data.</p>
-        <p><a href="/login/github">Sign in</a> to save data in the cloud and sync data between devices.</p>
+        <p><a href="/login/github">Sign in</a> to save data in the cloud and sync data between browsers / devices.</p>
     {/if}
 
 </div>
