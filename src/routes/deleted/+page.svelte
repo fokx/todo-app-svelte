@@ -1,16 +1,11 @@
 <script>
-    import Todo from "$lib/components/todo-list.svelte";
-    import {liveQuery} from "dexie";
-    import {dbDexie} from "$lib/db-dexie.js";
-    let todoList = liveQuery(() =>
-            dbDexie.todos.toArray()
-    );
+	import Todo from '$lib/components/todo-list.svelte';
+	import { derived } from 'svelte/store';
 
-    let todoListDeleted = $state();
-    todoList.subscribe((todos) => {
-        todoListDeleted = todos.filter(t => t.deleted);
-    });
-
+	/** @type {import('./$types').PageData} */
+	let { data } = $props();
+	let user = $derived(data.user);
+	let todoListDeleted = $derived(data.cloud_posts?.filter(t => t.deleted));
 </script>
 
 <style>
@@ -19,9 +14,9 @@
 
 <div class="centered">
 
-    <h2>Deleted TODOs:</h2>
-    <a href="/">Return to Main Page</a>
-    <hr>
-    <Todo bind:todos={todoListDeleted} isDeletedListPage={true}/>
+	<h2>Deleted TODOs:</h2>
+	<a href="/">Return to Main Page</a>
+	<hr>
+	<Todo todos={todoListDeleted} isDeletedListPage={true} />
 
 </div>
