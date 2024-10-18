@@ -8,9 +8,13 @@
     );
 </script>
 
+<style>
+    @import '$lib/styles.css';
+</style>
+
 <div class="centered">
 
-    <p>Deleted TODOs:</p>
+    <h2>Deleted TODOs:</h2>
     <hr>
     {#if $todoListDeleted}
         <Todo bind:todos={$todoListDeleted} isDeletedListPage={true}/>

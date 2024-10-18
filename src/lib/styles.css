@@ -226,7 +226,7 @@ ul.todos button {
     aspect-ratio: 1;
     opacity: 0.5;
     transition: opacity 0.2s;
-    margin-left: 1rem;
+    margin-left: 2rem;
 }
 
 ul.todos button:hover {

@@ -46,8 +46,8 @@
                 <span class:checked={todo.done === 'true'}>{todo.text}</span>
                 {#if !isDeletedListPage}
                     <button class="remove-button" onclick={() => deleteTodo(todo.id)}>Remove</button>
-                    <button class="edit-button" onclick={() => editTodo(todo.id)}>Edit</button>
                 {/if}
+                <button class="edit-button" onclick={() => editTodo(todo.id)}>Edit</button>
                 <br/>
             </li>
         {/each}
