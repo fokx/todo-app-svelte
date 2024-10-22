@@ -23,6 +23,7 @@
 	let todoListNotDeleted = $derived(todoList?.filter(t => !t.deleted));
 	let todoListNotDeletedUncompletedCount = $derived(todoList?.filter(t => !t.deleted).filter(t => !t.done).length);
 	let todoListNotDeletedCount = $derived(todoList?.filter(t => !t.deleted).length);
+
 	// });
 
 	function handleKeydown(e) {
@@ -46,15 +47,18 @@
 		newItem = '';
 	}
 
-	function deleteCompleted() {
-		if (window.confirm('Do you really want to delete all completed TODOs?')) {
-			todoListNotDeleted.forEach(todo => {
-				if (todo.done) {
-					dbDexie.todos.filter(t => t.id === todo.id).modify({ deleted: true });
-				}
-			});
-		}
-	}
+	// function deleteCompleted(form) {
+	// }
+
+	// function deleteCompleted() {
+	// 	if (window.confirm('Do you really want to delete all completed TODOs?')) {
+	// 		todoListNotDeleted.forEach(todo => {
+	// 			if (todo.done) {
+	// 				dbDexie.todos.filter(t => t.id === todo.id).modify({ deleted: true });
+	// 			}
+	// 		});
+	// 	}
+	// }
 
 
 	let todo_s_text = $derived('TODO' + (todoListNotDeletedCount > 1 ? 's' : ''));
@@ -125,11 +129,24 @@
 
 	<br />
 	<Todo todos={todoListNotDeleted} />
+	<div class="footer">
 	<button aria-label="View deleted TODOs" onclick={() => location.href='/deleted'} type="button">View deleted</button>
-	<button aria-label="Remove all completed TODOs"
-					disabled={!(todoListNotDeletedCount-todoListNotDeletedUncompletedCount)}
-					onclick={deleteCompleted}>Remove all completed
-	</button>
+	<form method="post" action="?/deleteAllCompleted" use:enhance={({formData, cancel}) => {
+		if (!window.confirm('Do you really want to delete all completed TODOs?')) {
+			cancel();
+			}
+			return async ({ update }) => {
+				await update();
+			};
+		}}>
+		<button aria-label="Remove all completed TODOs"
+						disabled={!(todoListNotDeletedCount-todoListNotDeletedUncompletedCount)}
+		>Remove all completed
+		</button>
+	</form>
+	</div>
+	<!--						onclick={(e) => deleteCompleted(e.target.form)}-->
+
 
 	{#if user === null}
 		<p>Note: Your TODOs are stored in your browser's local storage and will get <strong>lost</strong> when you clear

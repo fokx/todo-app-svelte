@@ -47,6 +47,19 @@ export const actions = {
 			// await db.delete(todos).where(eq(todos.id, formData.get('id')));
 		}
 	},
+	deleteAllCompleted: async function ({ locals, request }) {
+		let user = locals.user;
+		const formData = await request.formData();
+		if (user) {
+
+			// soft delete
+			await db
+				.update(todos)
+				.set({ deleted: true })
+				.where(eq(todos.done, true));
+			// await db.delete(todos).where(eq(todos.id, formData.get('id')));
+		}
+	},
 	editTodo: async function ({ locals, request }) {
 		let user = locals.user;
 		const formData = await request.formData();
