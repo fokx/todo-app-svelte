@@ -2,7 +2,7 @@ import { lucia } from '$lib/server/auth';
 import { fail, redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db/client.js';
 import { todos } from '$lib/server/db/schema.ts';
-import { desc, eq } from 'drizzle-orm';
+import { eq, not } from 'drizzle-orm';
 
 export const actions = {
 	logout: async (event) => {
@@ -40,7 +40,10 @@ export const actions = {
 		const formData = await request.formData();
 		if (user) {
 			// soft delete
-			await db.update(todos).set({ deleted: true }).where(eq(todos.id, formData.get('id')));
+			await db
+				.update(todos)
+				.set({ deleted: true })
+				.where(eq(todos.id, formData.get('id')));
 			// await db.delete(todos).where(eq(todos.id, formData.get('id')));
 		}
 	},
@@ -48,7 +51,27 @@ export const actions = {
 		let user = locals.user;
 		const formData = await request.formData();
 		if (user) {
-			await db.update(todos).set({ text: formData.get('new_text') }).where(eq(todos.id, formData.get('id')));
+			await db
+				.update(todos)
+				.set({ text: formData.get('new_text') })
+				.where(eq(todos.id, formData.get('id')));
+		}
+	},
+	toggleTodo: async function ({ locals, request }) {
+		let user = locals.user;
+		const formData = await request.formData();
+		const isChecked = formData.get('myCheckbox') === 'true';
+		console.log('isChecked', isChecked);
+		let prev_done = formData.get('prev_done');
+		console.log('prev_done', prev_done);
+		if (user) {
+			await db
+				.update(todos)
+				.set({
+					done: not(todos.done),
+				})
+				.where(eq(todos.id, formData.get('id')));
+;
 		}
 	}
 };

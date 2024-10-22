@@ -7,7 +7,12 @@
 		todos = $bindable(),
 		isDeletedListPage = false
 	} = $props();
+	let checked = false;
 
+	function handleChange(form) {
+		// Trigger form submission programmatically
+		form.requestSubmit();
+	}
 
 	async function deleteTodo(index) {
 		let should_delete = true;
@@ -42,7 +47,29 @@
 		{#each todos as todo, index (todo.id)}
 			<li transition:fade={{  duration: 100}}>
 				{#if !isDeletedListPage}
-					<input checked={todo.done} onclick={(ev) => updateDone(ev, todo.id)} type="checkbox" />
+					<form
+						method="POST"
+						action="?/toggleTodo"
+						use:enhance={() => {
+        return async ({ result, update }) => {
+            if (result.type === 'success') {
+                await update();
+            }
+        };
+    }}>
+						<label>
+							<input
+								type="checkbox"
+								name="myCheckbox"
+								checked={todo.done}
+								value="true"
+								onchange={(e) => handleChange(e.target.form)}
+							/>
+						</label>
+						<input type="hidden" name="id" value={todo.id} />
+						<input type="hidden" name="prev_done" value={todo.done} />
+
+					</form>
 				{/if}
 
 				<span class:checked={todo.done}>{todo.text}</span>
