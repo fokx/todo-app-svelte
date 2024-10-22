@@ -145,7 +145,7 @@ nav {
     position: relative;
     display: flex;
     gap: 1em;
-    padding: 1em;
+    /*padding: 1em;*/
     background: var(--bg-2);
     z-index: 2;
     margin: 0 0 1em 0;
