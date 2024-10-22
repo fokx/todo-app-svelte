@@ -193,8 +193,20 @@ ul.todos {
     padding: 0;
 }
 
+ul.todos li {
+    display: flex;
+    vertical-align: middle;
+    list-style-position: inside;
+    list-style-type: disc;
+    margin-right: 1em;
+    text-align: left;
+    white-space: nowrap;
+    align-items: center;
+    gap: 10px; /* Optional: adds space between elements */
+}
+
 ul.todos li:not(:has(> form)),
-ul.todos li form {
+ul.todos li {
     position: relative;
     display: flex;
     align-items: center;
