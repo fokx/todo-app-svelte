@@ -17,6 +17,6 @@
 	<h2>Deleted TODOs:</h2>
 	<a href="/">Return to Main Page</a>
 	<hr>
-	<Todo todos={todoListDeleted} isDeletedListPage={true} />
+	<Todo todoList={todoListDeleted} user={user} isDeletedListPage={true} />
 
 </div>

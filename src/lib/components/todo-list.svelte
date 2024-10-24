@@ -4,47 +4,57 @@
 	import { enhance } from '$app/forms';
 
 	let {
-		todos = $bindable(),
+		todoList = $bindable(),
+		user,
 		isDeletedListPage = false
 	} = $props();
+
 	let checked = false;
 
-	function handleChange(form) {
-		// Trigger form submission programmatically
-		form.requestSubmit();
-	}
-
-	async function deleteTodo(index) {
-		let should_delete = true;
-		await dbDexie.todos.get({ id: index }).then(function(result) {
-			if (!result.done && !window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?')) {
-				should_delete = false;
+	async function deleteTodo(e, index, done) {
+		if (user) {
+			// e.target.form.requestSubmit();
+		} else {
+			if (done || (!done && window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?'))) {
+				dbDexie.todos.filter(t => t.id === index).modify({ deleted: true });
 			}
-		});
-		if (should_delete === true) {
-			dbDexie.todos.filter(t => t.id === index).modify({ deleted: true });
 		}
 	}
 
+
 	function updateDone(ev, index) {
-		dbDexie.todos.update(index, { done: ev.target.checked.toString() });
+		let done = ev.target.checked;
+		dbDexie.todos.update(index, { done: done });
 	}
 
-	async function editTodo(index) {
-		// todoList.splice(index, 1);
-		await dbDexie.todos.get({ id: index }).then(function(result) {
-			let new_text = prompt(`Change "${result.text}" to:`, result.text);
-			if (new_text !== null && new_text !== '') {
-				dbDexie.todos.update(index, { text: new_text });
-			}
-		});
+	async function editTodo(e, index) {
+		if (user) {
+			// e.target.form.requestSubmit();
+		} else {
+			// todoList.splice(index, 1);
+			await dbDexie.todos.get({ id: index }).then(function(result) {
+				let new_text = prompt(`Change "${result.text}" to:`, result.text);
+				if (new_text !== null && new_text !== '') {
+					dbDexie.todos.update(index, { text: new_text });
+				}
+			});
+		}
 	}
 
+	export function handleCheckboxChange(e, id) {
+		console.log(user);
+		if (user) {
+			e.target.form.requestSubmit();
+		} else {
+			updateDone(e, id);
+		}
+		// Trigger form submission programmatically
+	}
 </script>
 
 <ul class="todos">
-	{#if todos}
-		{#each todos as todo, index (todo.id)}
+	{#if todoList}
+		{#each todoList as todo, index (todo.id)}
 			<li transition:fade={{  duration: 100}}>
 				{#if !isDeletedListPage}
 					<form
@@ -58,26 +68,35 @@
         };
     }}>
 						<label>
+
 							<input
 								type="checkbox"
 								name="myCheckbox"
 								checked={todo.done}
 								value="true"
-								onchange={(e) => handleChange(e.target.form)}
+								onchange={(e) => handleCheckboxChange(e, todo.id)}
 							/>
 						</label>
 						<input type="hidden" name="id" value={todo.id} />
 						<input type="hidden" name="prev_done" value={todo.done} />
-
 					</form>
 				{/if}
 
 				<span class:checked={todo.done}>{todo.text}</span>
+				<!--				<input class:checked={todo.done} type="text" name="tmp" value={todo.text}/>-->
 
 				{#if !isDeletedListPage}
-					<form method="post" action="?/deleteTodo" use:enhance>
+					<form method="post" action="?/deleteTodo" use:enhance={({formData, cancel}) => {
+					if (user){
+						if (!todo.done && !window.confirm('!This hasn\'t been done yet.\nDo you really want to delete this?')) {
+							cancel();
+						}else{return async ({ update }) => {
+				await update();
+			};}
+					}
+		}}>
 						<input type="hidden" name="id" value={todo.id} />
-						<button>Remove</button>
+						<button onclick={(e)=>deleteTodo(e, todo.id, todo.done)}>Remove</button>
 					</form>
 				{/if}
 				<form method="post" action="?/editTodo" use:enhance={({formData, cancel}) => {
@@ -94,7 +113,7 @@
 			};
 		}}>
 					<input type="hidden" name="id" value={todo.id} />
-					<button>Edit</button>
+					<button onclick={(e)=>editTodo(e, todo.id)}>Edit</button>
 				</form>
 				<br />
 			</li>
