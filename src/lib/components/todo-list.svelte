@@ -42,7 +42,7 @@
 	}
 
 	export function handleCheckboxChange(e, id) {
-		console.log(user);
+		// console.log(user);
 		if (user) {
 			e.target.form.requestSubmit();
 		} else {
@@ -88,7 +88,7 @@
 				{#if !isDeletedListPage}
 					<form method="post" action="?/deleteTodo" use:enhance={({formData, cancel}) => {
 					if (user){
-						if (!todo.done && !window.confirm('!This hasn\'t been done yet.\nDo you really want to delete this?')) {
+						if (!todo.done && !window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?')) {
 							cancel();
 						}else{return async ({ update }) => {
 				await update();
@@ -102,8 +102,8 @@
 				<form method="post" action="?/editTodo" use:enhance={({formData, cancel}) => {
 					let new_text = prompt(`Change "${todo.text}" to:`, todo.text);
 			if (new_text !== null && new_text !== '') {
-				console.log(formData);
-				console.log(Object.keys(formData));
+				// console.log(formData);
+				// console.log(Object.keys(formData));
 				formData.set('new_text', new_text);
 			} else{
 				cancel();

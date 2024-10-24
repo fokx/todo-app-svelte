@@ -35,3 +35,6 @@ You can preview the production build with `pnpm run preview`.
 * after click the sign-in button, the sign-in button does not disappear.
 * deletion icon not working, which is borrowed from [svelte tutorial](https://learn.svelte.dev/tutorial/progressive-enhancement).
 * dark mode not work temporarily
+
+## Dev Notes
+setting cookies for `127.0.0.1` is different from `localhost`.

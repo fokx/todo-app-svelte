@@ -9,7 +9,7 @@
 
 	const connection = source('/custom-event', {
 		close({ connect }) {
-			console.log('reconnecting...');
+			// console.log('reconnecting...');
 			connect();
 		}
 	});
@@ -75,10 +75,10 @@
 	}
 
 	function deleteCompleted(form) {
-		if (window.confirm('Do you really want to delete all completed TODOs?')) {
-			if (user) {
-				// form.requestSubmit();
-			} else {
+		if (user) {
+			// form.requestSubmit();
+		} else {
+			if (window.confirm('Do you really want to delete all completed TODOs?')) {
 				todoListNotDeletedLocal.forEach(todo => {
 					if (todo.done) {
 						dbDexie.todos.filter(t => t.id === todo.id).modify({ deleted: true });
@@ -178,12 +178,14 @@
 	<div class="footer">
 		<button aria-label="View deleted TODOs" onclick={() => location.href='/deleted'} type="button">View deleted</button>
 		<form method="post" action="?/deleteAllCompleted" use:enhance={({formData, cancel}) => {
-		if (!window.confirm('Do you really want to delete all completed TODOs?')) {
+		if (user) {
+			if (!window.confirm('Do you really want to delete all completed TODOs?')) {
 			cancel();
 			}
 			return async ({ update }) => {
 				await update();
 			};
+		}
 		}}>
 			<button aria-label="Remove all completed TODOs"
 							disabled={user?(!(todoListNotDeletedCount-todoListNotDeletedUncompletedCount)):(!(todoListNotDeletedCountLocal-todoListNotDeletedUncompletedCountLocal))}
@@ -198,7 +200,7 @@
 		<p>⚠️ Your TODOs are stored in your <a
 			href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API">browser</a>
 			and will get <strong>lost</strong> when you clear browsing data.</p>
-		<p><a href="/login/github">Sign in</a> to store data in the cloud and get synced between browsers / devices.</p>
+		<p><a href="/login/sso">Sign in</a> to store data in the cloud and get synced between browsers / devices.</p>
 	{/if}
 
 </div>

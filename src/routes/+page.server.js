@@ -18,14 +18,13 @@ export const actions = {
 		// return redirect(302, '/logout');
 	},
 	login: async (event) => {
-		await redirect(302, '/login/github');
+		await redirect(302, '/login/sso');
 	},
 	createpost: async function ({ locals, request }) {
 		let user = locals.user;
 		const formData = await request.formData();
 		if (user) {
 			const newPost = await db.insert(todos).values({
-				user_source: 'github',
 				username: user.username,
 				text: formData.get('content'),
 				done: false,
@@ -51,7 +50,6 @@ export const actions = {
 		let user = locals.user;
 		const formData = await request.formData();
 		if (user) {
-
 			// soft delete
 			await db
 				.update(todos)
@@ -73,10 +71,8 @@ export const actions = {
 	toggleTodo: async function ({ locals, request }) {
 		let user = locals.user;
 		const formData = await request.formData();
-		const isChecked = formData.get('myCheckbox') === 'true';
-		console.log('isChecked', isChecked);
-		let prev_done = formData.get('prev_done');
-		console.log('prev_done', prev_done);
+		// const isChecked = formData.get('myCheckbox') === 'true';
+		// let prev_done = formData.get('prev_done');
 		if (user) {
 			await db
 				.update(todos)

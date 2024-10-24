@@ -1,12 +1,13 @@
-import { github, lucia } from '$lib/server/auth';
+import { oauth2Client, lucia } from '$lib/server/auth';
 import { OAuth2RequestError } from 'arctic';
 import { generateId } from 'lucia';
 import { db } from '$lib/server/db-lucia';
+import {  SSO_CLIENT_SECRET } from '$env/static/private';
 
 export async function GET(event) {
 	const code = event.url.searchParams.get('code');
 	const state = event.url.searchParams.get('state');
-	const storedState = event.cookies.get('github_oauth_state') ?? null;
+	const storedState = event.cookies.get('sso_oauth_state') ?? null;
 	if (!code || !state || !storedState || state !== storedState) {
 		return new Response(null, {
 			status: 400
@@ -14,14 +15,14 @@ export async function GET(event) {
 	}
 
 	try {
-		const tokens = await github.validateAuthorizationCode(code);
-		const githubUserResponse = await fetch('https://api.github.com/user', {
+		const tokens = await oauth2Client.validateAuthorizationCode(code, {credentials: SSO_CLIENT_SECRET});
+		const ssoUserResponse = await fetch(process.env.SSO_USER_RESPONSE_URL, {
 			headers: {
 				Authorization: `Bearer ${tokens.accessToken()}`
 			}
 		});
-		const githubUser = await githubUserResponse.json();
-		const existingUser = db.prepare('SELECT * FROM user WHERE github_id = ?').get(githubUser.id);
+		const ssoUser = await ssoUserResponse.json();
+		const existingUser = db.prepare('SELECT * FROM user WHERE user_id = ?').get(ssoUser.sub);
 
 		if (existingUser) {
 			const session = await lucia.createSession(existingUser.id, {});
@@ -32,10 +33,15 @@ export async function GET(event) {
 			});
 		} else {
 			const userId = generateId(15);
-			db.prepare('INSERT INTO user (id, github_id, username) VALUES (?, ?, ?)').run(
+			// db.prepare('INSERT INTO user (id, user_id, username) VALUES (?, ?, ?)').run(
+			// 	userId,
+			// 	ssoUser.id,
+			// 	ssoUser.login
+			// );
+			db.prepare('INSERT INTO user (id, user_id, username) VALUES (?, ?, ?)').run(
 				userId,
-				githubUser.id,
-				githubUser.login
+				ssoUser.sub,
+				ssoUser.preferred_username
 			);
 			const session = await lucia.createSession(userId, {});
 			const sessionCookie = lucia.createSessionCookie(session.id);
