@@ -33,15 +33,10 @@ export async function GET(event) {
 			});
 		} else {
 			const userId = generateId(15);
-			// db.prepare('INSERT INTO user (id, user_id, username) VALUES (?, ?, ?)').run(
-			// 	userId,
-			// 	ssoUser.id,
-			// 	ssoUser.login
-			// );
 			db.prepare('INSERT INTO user (id, user_id, username) VALUES (?, ?, ?)').run(
 				userId,
-				ssoUser.sub,
-				ssoUser.preferred_username
+				ssoUser.sub, // id
+				ssoUser.preferred_username // login
 			);
 			const session = await lucia.createSession(userId, {});
 			const sessionCookie = lucia.createSessionCookie(session.id);

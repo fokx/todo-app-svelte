@@ -16,6 +16,9 @@
 
 	const server_event_value = connection.select('message');
 
+	// server_event_value.subscribe((value) => {
+	// 	console.log('server_event_value:', value);
+	// });
 	setTimeout(function run() {
 		connection.close();
 	}, 3000);
@@ -120,9 +123,8 @@
 
 <div class="centered">
 
-	{$server_event_value}
 	<div class="header-login">
-		{#if user != null}
+		{#if user}
 			<h2>{user.username}'s TODO List</h2>
 			<form method="post" action="?/logout" use:enhance={() => {
 			logging_out = true;
@@ -194,9 +196,11 @@
 			</button>
 		</form>
 	</div>
-	<!--						onclick={(e) => deleteCompleted(e.target.form)}-->
 
-	{#if user === null}
+	{#if user}
+		<p>Currently, to view changes to your TODOs on another browser/device, you have to refresh the webpage.</p>
+		<p>In a future version, we plan to sync displayed todos automatically.</p>
+		{:else}
 		<p>⚠️ Your TODOs are stored in your <a
 			href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API">browser</a>
 			and will get <strong>lost</strong> when you clear browsing data.</p>

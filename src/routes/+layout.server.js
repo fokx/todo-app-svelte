@@ -7,11 +7,12 @@ import { desc, eq } from 'drizzle-orm';
 /** @type {import('./$types').PageServerLoad} */
 export async function load(event){
 	let cloud_posts;
-	if (!event.locals.user) {
+	let user = event.locals.user;
+	if (!user) {
 		// return redirect(302, '/login');
 	} else {
 		// console.log(db.query);
-		cloud_posts = await db.select().from(todos).orderBy(desc(todos.created_at));
+		cloud_posts = await db.select().from(todos).where(eq(todos.username, user.username)).orderBy(desc(todos.created_at));
 	}
 	return {
 		user: event.locals.user,
