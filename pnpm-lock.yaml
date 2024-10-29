@@ -26,6 +26,9 @@ importers:
       dexie:
         specifier: ^4.0.9
         version: 4.0.9
+      dexie-cloud-addon:
+        specifier: ^4.0.8
+        version: 4.0.8(dexie@4.0.9)
       dotenv:
         specifier: ^16.4.5
         version: 16.4.5
@@ -1255,6 +1258,15 @@ packages:
   devalue@5.1.1:
     resolution: {integrity: sha512-maua5KUiapvEwiEAe+XnlZ3Rh0GD+qI1J/nb9vrJc3muPXvcF/8gXYTWF76+5DAqHyDUtOIImEuo0YKE9mshVw==}
 
+  dexie-cloud-addon@4.0.8:
+    resolution: {integrity: sha512-wD+eObGcqiL+PjQ6t3bLsXLnuJhPUw+WpMh1fvbMUPRSq7ODZjjXOz1zSzIw/fK6VDgrGbYS7B0BFWBfQNz5UQ==}
+    engines: {node: '>=14'}
+    peerDependencies:
+      dexie: ^4.0.1-alpha.5
+
+  dexie-cloud-common@1.0.42:
+    resolution: {integrity: sha512-vBrx8+Nm2+iMagduITkMr0YmX8HBxQ51B6BgViMLnPstBJmyisL5gN1OZKtzUUsxw1bPyeh4njhWtunfVCyS1Q==}
+
   dexie@4.0.9:
     resolution: {integrity: sha512-VQG1huEVSAdDZssb9Bb9mFy+d3jAE0PT4d1nIRYlT46ip1fzbs1tXi0SlUayRDgV3tTbJG8ZRqAo2um49gtynA==}
 
@@ -1612,6 +1624,9 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
+  isomorphic.js@0.2.5:
+    resolution: {integrity: sha512-PIeMbHqMt4DnUP3MA/Flc0HElYjMXArsw1qwJZcm9sqR8mq3l8NYizFMty0pWwE/tzIGH3EKK5+jes5mAr85yw==}
+
   js-base64@3.7.7:
     resolution: {integrity: sha512-7rCnleh0z2CkXhH67J8K1Ytz0b2Y+yxTPL+/KOJoa20hfnVQ/3/T6W/KflYI4bRHRagNeXeU2bkNGI3v1oS/lw==}
 
@@ -1641,6 +1656,11 @@ packages:
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
+
+  lib0@0.2.98:
+    resolution: {integrity: sha512-XteTiNO0qEXqqweWx+b21p/fBnNHUA1NwAtJNJek1oPrewEZs2uiT4gWivHKr9GqCjDPAhchz0UQO8NwU3bBNA==}
+    engines: {node: '>=16'}
+    hasBin: true
 
   libsql@0.4.6:
     resolution: {integrity: sha512-F5M+ltteK6dCcpjMahrkgT96uFJvVI8aQ4r9f2AzHQjC7BkAYtvfMSTWGvRBezRgMUIU2h1Sy0pF9nOGOD5iyA==}
@@ -1932,6 +1952,9 @@ packages:
     resolution: {integrity: sha512-DOmrlGSXNk1DM0ljiQA+i+o0rSLhtii1je5wgk60j49d1jHT5YYttBv1iWOnYSTG+fZZESUOSNiAl89SIet+Cg==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
+
+  rxjs@7.8.1:
+    resolution: {integrity: sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg==}
 
   sade@1.8.1:
     resolution: {integrity: sha512-xal3CZX1Xlo/k4ApwCFrHVACi9fBqJ7V+mwhBsuf/1IOKbBy098Fex+Wa/5QMubw09pSZ/u8EY8PWgevJsXp1A==}
@@ -3096,6 +3119,16 @@ snapshots:
 
   devalue@5.1.1: {}
 
+  dexie-cloud-addon@4.0.8(dexie@4.0.9):
+    dependencies:
+      dexie: 4.0.9
+      dexie-cloud-common: 1.0.42
+      rxjs: 7.8.1
+
+  dexie-cloud-common@1.0.42:
+    dependencies:
+      lib0: 0.2.98
+
   dexie@4.0.9: {}
 
   dotenv@16.4.5: {}
@@ -3440,6 +3473,8 @@ snapshots:
 
   isexe@2.0.0: {}
 
+  isomorphic.js@0.2.5: {}
+
   js-base64@3.7.7: {}
 
   js-yaml@4.1.0:
@@ -3464,6 +3499,10 @@ snapshots:
     dependencies:
       prelude-ls: 1.2.1
       type-check: 0.4.0
+
+  lib0@0.2.98:
+    dependencies:
+      isomorphic.js: 0.2.5
 
   libsql@0.4.6:
     dependencies:
@@ -3759,6 +3798,10 @@ snapshots:
       '@rollup/rollup-win32-x64-msvc': 4.24.0
       fsevents: 2.3.3
 
+  rxjs@7.8.1:
+    dependencies:
+      tslib: 2.8.0
+
   sade@1.8.1:
     dependencies:
       mri: 1.2.0
@@ -3898,8 +3941,7 @@ snapshots:
 
   totalist@3.0.1: {}
 
-  tslib@2.8.0:
-    optional: true
+  tslib@2.8.0: {}
 
   tunnel-agent@0.6.0:
     dependencies:
