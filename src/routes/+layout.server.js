@@ -12,7 +12,7 @@ export async function load(event){
 		// return redirect(302, '/login');
 	} else {
 		// console.log(db.query);
-		cloud_posts = await db.select().from(todos).where(eq(todos.username, user.username)).orderBy(desc(todos.created_at));
+		cloud_posts = await db.select().from(todos).where(eq(todos.user_id, user.user_id)).orderBy(desc(todos.created_at));
 	}
 	return {
 		user: event.locals.user,

@@ -21,7 +21,8 @@ export const todos = sqliteTable('todos', {
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => generateId(64)),
-	username: text({ length: 65535 }).notNull(),
+	user_id: integer().notNull(),
+	user_name: text({ length: 65535 }),
 	email: text({ length: 65535 }),
 	text: text( { length: 65535 }).notNull(),
 	done: integer({ mode: 'boolean' }),

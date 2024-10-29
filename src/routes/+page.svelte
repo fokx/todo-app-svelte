@@ -161,16 +161,13 @@
 	{:else}
 		<p>{count_status_local}</p>
 	{/if}
-
-	<form method="post" action="?/createpost" use:enhance>
+	<form method="post" action="?/createpost" use:enhance class="inline-form">
 		<label>
 			<input bind:value={newItem} name="content" placeholder="new todo item.." type="text" required
 						 onkeydown={(e) => addToListhandleKeydown(e)} />
-			<!-- on:keydown={handleKeydown} -->
 		</label>
 		<button aria-label="Add" disabled={!newItem} onclick={(e) => addToList(e.target.form)}>Add</button>
 	</form>
-
 	<br />
 	{#if user}
 		<Todo todoList={todoListNotDeleted} user={user} />
