@@ -83,7 +83,7 @@
 				{/if}
 
 				<span class:checked={todo.done}>{todo.text}</span>
-				<!--				<input class:checked={todo.done} type="text" name="tmp" value={todo.text}/>-->
+				<!--<input class:checked={todo.done} type="text" name="tmp" value={todo.text}/>-->
 
 				{#if !isDeletedListPage}
 					<form method="post" action="?/deleteTodo" use:enhance={({formData, cancel}) => {
@@ -100,7 +100,8 @@
 					</form>
 				{/if}
 				<form method="post" action="?/editTodo" use:enhance={({formData, cancel}) => {
-					let new_text = prompt(`Change "${todo.text}" to:`, todo.text);
+					if (user) {
+						let new_text = prompt(`Change "${todo.text}" to:`, todo.text);
 			if (new_text !== null && new_text !== '') {
 				// console.log(formData);
 				// console.log(Object.keys(formData));
@@ -111,6 +112,7 @@
 			return async ({ update }) => {
 				await update();
 			};
+					}
 		}}>
 					<input type="hidden" name="id" value={todo.id} />
 					<button onclick={(e)=>editTodo(e, todo.id)}>Edit</button>

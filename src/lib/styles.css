@@ -230,15 +230,18 @@ ul.todos button {
     /*background-color: transparent;*/
     background-repeat: no-repeat;
     background-position: 50% 50%;
-    background-size: 1rem 1rem;
+    /*background-size: 1rem 1rem;*/
     cursor: pointer;
-    /*width: 4em;*/
-    height: 3em;
-    margin: -0.5em -0.5em -0.5em 0;
-    aspect-ratio: 0.5;
+    text-align: center;
+    width: fit-content;
+    padding: 10px 10px 10px 10px;
+    /*border-radius: 20px;*/
+    /*height: 3em;*/
+    /*margin: -0.5em -0.5em -0.5em 0;*/
+    /*aspect-ratio: 1.0;*/
     opacity: 0.5;
     transition: opacity 0.2s;
-    margin-left: 1rem;
+    margin-left: 0rem;
 }
 
 ul.todos button:hover {
