@@ -1,7 +1,7 @@
 import { oauth2Client, lucia } from '$lib/server/auth';
 import { OAuth2RequestError } from 'arctic';
 import { generateId } from 'lucia';
-import { db } from '$lib/server/db-lucia';
+import { dbLucia } from '$lib/server/db-lucia';
 import {  SSO_CLIENT_SECRET } from '$env/static/private';
 
 export async function GET(event) {
@@ -22,7 +22,7 @@ export async function GET(event) {
 			}
 		});
 		const ssoUser = await ssoUserResponse.json();
-		const existingUser = db.prepare('SELECT * FROM user WHERE user_id = ?').get(ssoUser.sub);
+		const existingUser = dbLucia.prepare('SELECT * FROM user WHERE user_id = ?').get(ssoUser.sub);
 
 		if (existingUser) {
 			const session = await lucia.createSession(existingUser.id, {});
@@ -33,7 +33,7 @@ export async function GET(event) {
 			});
 		} else {
 			const userId = generateId(15);
-			db.prepare('INSERT INTO user (id, user_id, username) VALUES (?, ?, ?)').run(
+			dbLucia.prepare('INSERT INTO user (id, user_id, username) VALUES (?, ?, ?)').run(
 				userId,
 				ssoUser.sub, // id
 				ssoUser.preferred_username // login

@@ -1,13 +1,13 @@
 import { Lucia } from 'lucia';
 import { BetterSqlite3Adapter } from '@lucia-auth/adapter-sqlite';
 import { dev } from '$app/environment';
-import { db } from './db-lucia';
+import { dbLucia } from './db-lucia';
 import { GitHub } from 'arctic';
 import { SSO_CLIENT_ID, SSO_CLIENT_SECRET, SSO_REDIRECT_URL } from '$env/static/private';
 // import { OAuth2Client } from "oslo/oauth2";
 import { MySsoApp } from '$lib/server/my-sso-app.js';
 
-const adapter = new BetterSqlite3Adapter(db, {
+const adapter = new BetterSqlite3Adapter(dbLucia, {
 	user: 'user',
 	session: 'session'
 });

@@ -1,3 +1,5 @@
+// src/routes/events/+server.js
+import { clients } from '$lib/clients'
 import { produce } from 'sveltekit-sse'
 
 /**
@@ -10,14 +12,29 @@ function delay(milliseconds) {
   })
 }
 
-export function POST() {
-  return produce(async function start({ emit }) {
-      while (true) {
-        const {error} = emit('message', `the time is ${Date.now()}`)
-        if(error) {
+
+export function POST({ request }) {
+  return produce(
+    function start({ emit }) {
+      const sessionId = request.headers.get('session-id') ?? ''
+      if (!sessionId) {
+        return function stop() {
+          console.error('Client session id not found.')
+        }
+      }
+      // Map the session id to an emitter.
+      // This will also indicate to you that the client is "online".
+      clients.set(sessionId, emit)
+    },
+    {
+      // Client goes "offline", so remove the entry.
+      stop() {
+        const sessionId = request.headers.get('session-id') ?? ''
+        if (!sessionId) {
           return
         }
-        await delay(1000)
-      }
-  })
+        clients.delete(sessionId)
+      },
+    },
+  )
 }

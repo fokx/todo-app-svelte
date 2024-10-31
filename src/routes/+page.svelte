@@ -4,25 +4,22 @@
 	import { enhance } from '$app/forms';
 	import Todo from '$lib/components/todo-list.svelte';
 	import { derived } from 'svelte/store';
-	import { source } from 'sveltekit-sse';
+	// import { source } from 'sveltekit-sse';
 	import { liveQuery } from 'dexie';
-
-	const connection = source('/custom-event', {
-		close({ connect }) {
-			// console.log('reconnecting...');
-			connect();
-		}
-	});
-
-	const server_event_value = connection.select('message');
-
+	//
+	// const connection = source('/custom-event', {
+	// 	close({ connect }) {
+	// 		console.log('reconnecting...');
+	// 		connect();
+	// 	}
+	// });
+	// const server_event_value = connection.select('message');
 	// server_event_value.subscribe((value) => {
 	// 	console.log('server_event_value:', value);
 	// });
-	setTimeout(function run() {
-		connection.close();
-	}, 3000);
-
+	// setTimeout(function run() {
+	// 	connection.close();
+	// }, 3000);
 
 	/** @type {import('./$types').PageData} */
 	let { data } = $props();
@@ -122,38 +119,39 @@
 </style>
 
 <div class="centered">
-
+<!--<p>{$server_event_value}</p>-->
 	<div class="header-login">
 		{#if user}
 			<h2>{user.username}'s TODO List</h2>
-			<form method="post" action="?/logout" use:enhance={() => {
-			logging_out = true;
-			return async ({ update }) => {
-				await update();
-				logging_out = false;
-			};
-		}}>
-				<button aria-label="Sign out">Sign out</button>
-			</form>
-			{#if logging_out}
-				<span class="logging-in-out">logging you out...</span>
-			{/if}
+<!--			<form method="post" action="?/logout" use:enhance={() => {-->
+<!--			logging_out = true;-->
+<!--			return async ({ update }) => {-->
+<!--				await update();-->
+<!--				logging_out = false;-->
+<!--			};-->
+<!--		}}>-->
+<!--				<button aria-label="Sign out">Sign out</button>-->
+<!--			</form>-->
+<!--			{#if logging_out}-->
+<!--				<span class="logging-in-out">logging you out...</span>-->
+<!--			{/if}-->
 		{:else}
 			<h2>My TODO List</h2>
-			<nav data-sveltekit-reload>
-				<form method="post" action="?/login" use:enhance={() => {
-			logging_in = true;
-			return async ({ update }) => {
-				await update();
-			};
-		}}>
-					<button aria-label="Sign in">Sign in</button>
-				</form>
-			</nav>
-			{#if logging_in}
-				<span class="logging-in-out">signing you in...</span>
-			{/if}
+<!--			<nav data-sveltekit-reload>-->
+<!--				<form method="post" action="?/login" use:enhance={() => {-->
+<!--			logging_in = true;-->
+<!--			return async ({ update }) => {-->
+<!--				await update();-->
+<!--			};-->
+<!--		}}>-->
+<!--					<button aria-label="Sign in">Sign in</button>-->
+<!--				</form>-->
+<!--			</nav>-->
+<!--			{#if logging_in}-->
+<!--				<span class="logging-in-out">signing you in...</span>-->
+<!--			{/if}-->
 		{/if}
+
 	</div>
 
 	{#if user}

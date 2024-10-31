@@ -15,6 +15,6 @@ dbDexie.version(1).stores({
 
 dbDexie.cloud.configure({
 	databaseUrl: PUBLIC_DEXIE_DB_URL,
-	requireAuth: true
+	// requireAuth: false,
 });
 // }
