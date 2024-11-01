@@ -119,37 +119,37 @@
 </style>
 
 <div class="centered">
-<!--<p>{$server_event_value}</p>-->
+	<!--<p>{$server_event_value}</p>-->
 	<div class="header-login">
 		{#if user}
 			<h2>{user.username}'s TODO List</h2>
-<!--			<form method="post" action="?/logout" use:enhance={() => {-->
-<!--			logging_out = true;-->
-<!--			return async ({ update }) => {-->
-<!--				await update();-->
-<!--				logging_out = false;-->
-<!--			};-->
-<!--		}}>-->
-<!--				<button aria-label="Sign out">Sign out</button>-->
-<!--			</form>-->
-<!--			{#if logging_out}-->
-<!--				<span class="logging-in-out">logging you out...</span>-->
-<!--			{/if}-->
+			<!--			<form method="post" action="?/logout" use:enhance={() => {-->
+			<!--			logging_out = true;-->
+			<!--			return async ({ update }) => {-->
+			<!--				await update();-->
+			<!--				logging_out = false;-->
+			<!--			};-->
+			<!--		}}>-->
+			<!--				<button aria-label="Sign out">Sign out</button>-->
+			<!--			</form>-->
+			<!--			{#if logging_out}-->
+			<!--				<span class="logging-in-out">logging you out...</span>-->
+			<!--			{/if}-->
 		{:else}
 			<h2>My TODO List</h2>
-<!--			<nav data-sveltekit-reload>-->
-<!--				<form method="post" action="?/login" use:enhance={() => {-->
-<!--			logging_in = true;-->
-<!--			return async ({ update }) => {-->
-<!--				await update();-->
-<!--			};-->
-<!--		}}>-->
-<!--					<button aria-label="Sign in">Sign in</button>-->
-<!--				</form>-->
-<!--			</nav>-->
-<!--			{#if logging_in}-->
-<!--				<span class="logging-in-out">signing you in...</span>-->
-<!--			{/if}-->
+			<!--			<nav data-sveltekit-reload>-->
+			<!--				<form method="post" action="?/login" use:enhance={() => {-->
+			<!--			logging_in = true;-->
+			<!--			return async ({ update }) => {-->
+			<!--				await update();-->
+			<!--			};-->
+			<!--		}}>-->
+			<!--					<button aria-label="Sign in">Sign in</button>-->
+			<!--				</form>-->
+			<!--			</nav>-->
+			<!--			{#if logging_in}-->
+			<!--				<span class="logging-in-out">signing you in...</span>-->
+			<!--			{/if}-->
 		{/if}
 
 	</div>
@@ -159,20 +159,20 @@
 	{:else}
 		<p>{count_status_local}</p>
 	{/if}
-	<form method="post" action="?/createpost" use:enhance class="inline-form">
-		<label>
-			<input bind:value={newItem} name="content" placeholder="new todo item.." type="text" required
-						 onkeydown={(e) => addToListhandleKeydown(e)} />
-		</label>
+
+	<form method="post" action="?/createpost" use:enhance class="input-form">
+		<input bind:value={newItem} name="content" placeholder="new todo item.." type="text" required
+					 onkeydown={(e) => addToListhandleKeydown(e)} />
 		<button aria-label="Add" disabled={!newItem} onclick={(e) => addToList(e.target.form)}>Add</button>
 	</form>
+
 	<br />
 	{#if user}
 		<Todo todoList={todoListNotDeleted} user={user} />
 	{:else}
 		<Todo todoList={todoListNotDeletedLocal} user={null} />
 	{/if}
-	<div class="footer">
+	<div class="footer-buttons">
 		<button aria-label="View deleted TODOs" onclick={() => location.href='/deleted'} type="button">View deleted</button>
 		<form method="post" action="?/deleteAllCompleted" use:enhance={({formData, cancel}) => {
 		if (user) {
@@ -195,7 +195,7 @@
 	{#if user}
 		<p>Currently, to view changes to your TODOs on another browser/device, you have to refresh the webpage.</p>
 		<p>In a future version, we plan to sync displayed todos automatically.</p>
-		{:else}
+	{:else}
 		<p>⚠️ Your TODOs are stored in your <a
 			href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API">browser</a>
 			and will get <strong>lost</strong> when you clear browsing data.</p>

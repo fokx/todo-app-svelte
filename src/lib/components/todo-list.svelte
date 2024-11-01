@@ -85,8 +85,9 @@
 				<span class:checked={todo.done}>{todo.text}</span>
 				<!--<input class:checked={todo.done} type="text" name="tmp" value={todo.text}/>-->
 
-				{#if !isDeletedListPage}
-					<form method="post" action="?/deleteTodo" use:enhance={({formData, cancel}) => {
+				<div class="right-buttons">
+					{#if !isDeletedListPage}
+						<form method="post" action="?/deleteTodo" use:enhance={({formData, cancel}) => {
 					if (user){
 						if (!todo.done && !window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?')) {
 							cancel();
@@ -95,11 +96,11 @@
 			};}
 					}
 		}}>
-						<input type="hidden" name="id" value={todo.id} />
-						<button onclick={(e)=>deleteTodo(e, todo.id, todo.done)}>Remove</button>
-					</form>
-				{/if}
-				<form method="post" action="?/editTodo" use:enhance={({formData, cancel}) => {
+							<input type="hidden" name="id" value={todo.id} />
+							<button onclick={(e)=>deleteTodo(e, todo.id, todo.done)}>Remove</button>
+						</form>
+					{/if}
+					<form method="post" action="?/editTodo" use:enhance={({formData, cancel}) => {
 					if (user) {
 						let new_text = prompt(`Change "${todo.text}" to:`, todo.text);
 			if (new_text !== null && new_text !== '') {
@@ -114,9 +115,11 @@
 			};
 					}
 		}}>
-					<input type="hidden" name="id" value={todo.id} />
-					<button onclick={(e)=>editTodo(e, todo.id)}>Edit</button>
-				</form>
+						<input type="hidden" name="id" value={todo.id} />
+						<button onclick={(e)=>editTodo(e, todo.id)}>Edit</button>
+					</form>
+				</div>
+
 				<br />
 			</li>
 		{/each}
