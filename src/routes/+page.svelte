@@ -6,6 +6,7 @@
 	import { derived } from 'svelte/store';
 	// import { source } from 'sveltekit-sse';
 	import { liveQuery } from 'dexie';
+	import { gen_todo_id } from '$lib/utils.js';
 	//
 	// const connection = source('/custom-event', {
 	// 	close({ connect }) {
@@ -65,6 +66,7 @@
 			// form.requestSubmit();
 		} else {
 			const id = dbDexie.todos.add({
+				id: gen_todo_id(),
 				text: newItem,
 				done: false,
 				deleted: false,
