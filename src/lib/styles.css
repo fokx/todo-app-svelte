@@ -99,7 +99,7 @@ button, input, select {
 button {
     /*background: var(--link);*/
     /*color: var(--bg-1);*/
-    border-radius: var (--border-radius);
+    border-radius: var(--border-radius);
     border: none;
     padding: .5rem 1rem
 }
@@ -112,17 +112,17 @@ button:active {
     background: var(--link-active)
 }
 
-:-webkit-any(button,button:hover,button:active):disabled {
-    background: var(--link);
-    filter: grayscale();
-    opacity: .4
-}
+/*:-webkit-any(button,button:hover,button:active):disabled {*/
+/*    background: var(--link);*/
+/*    filter: grayscale();*/
+/*    opacity: .4*/
+/*}*/
 
-:is(button,button:hover,button:active):disabled {
-    background: var(--link);
-    filter: grayscale();
-    opacity: .4
-}
+/*:is(button,button:hover,button:active):disabled {*/
+/*    background: var(--link);*/
+/*    filter: grayscale();*/
+/*    opacity: .4*/
+/*}*/
 
 input, textarea, select {
     border: 1px solid var(--bg-2);
@@ -189,7 +189,7 @@ progress:first-child {
     margin-top: 0
 }
 
-progress:lsat-child {
+progress:last-child {
     margin-bottom: 0
 }
 

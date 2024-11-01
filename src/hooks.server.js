@@ -1,7 +1,6 @@
 // import { lucia } from '$lib/server/auth';
-import type { Handle } from '@sveltejs/kit';
 import {read_user} from '$lib/server/read_cookie'
-export const handle: Handle = async ({ event, resolve }) => {
+export const handle = async ({ event, resolve }) => {
 	// const sessionId = event.cookies.get(lucia.sessionCookieName);
 	if (!event.locals.user) {
 

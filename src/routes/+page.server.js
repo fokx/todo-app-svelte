@@ -25,6 +25,7 @@ export const actions = {
 		const formData = await request.formData();
 		if (user) {
 			const newPost = await db.insert(todos).values({
+				id: formData.get('id'),
 				user_id: user.user_id,
 				text: formData.get('content'),
 				done: false,

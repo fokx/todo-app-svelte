@@ -48,32 +48,34 @@
 		todoListNotDeletedUncompletedCountLocal = todos.filter(t => !t.deleted).filter(t => !t.done).length;
 		todoListNotDeletedCountLocal = todos.filter(t => !t.deleted).length;
 	});
+	let new_todo_id;
 
 	function addToListhandleKeydown(e) {
 		if (e.target.form.key === 'Enter') {
-			if (user) {
-				// e.target.form.requestSubmit();
-			} else {
-				if (newItem) {
-					addToList(e.target.form);
-				}
+			// if (user) {
+			// e.target.form.requestSubmit();
+			// } else {
+			if (newItem) {
+				addToList(e.target.form);
 			}
+			// }
 		}
 	}
 
 	async function addToList(form) {
-		if (user) {
-			// form.requestSubmit();
-		} else {
-			const id = dbDexie.todos.add({
-				id: gen_todo_id(),
-				text: newItem,
-				done: false,
-				deleted: false,
-				synced: false
-			});
-			newItem = '';
-		}
+		new_todo_id = gen_todo_id();
+		dbDexie.todos.add({
+			id: new_todo_id,
+			text: newItem,
+			done: false,
+			deleted: false,
+			synced: false
+		});
+		// newItem = '';
+		// if (user) {
+		// 	// form.requestSubmit();
+		// } else {
+		// }
 	}
 
 	function deleteCompleted(form) {
@@ -150,7 +152,7 @@
 			<!--				</form>-->
 			<!--			</nav>-->
 			<!--			{#if logging_in}-->
-			<!--				<span class="logging-in-out">signing you in...</span>-->
+			<!--				<span class="logging-in-out">signing you in...</span>-->cc
 			<!--			{/if}-->
 		{/if}
 
@@ -162,7 +164,23 @@
 		<p>{count_status_local}</p>
 	{/if}
 
-	<form method="post" action="?/createpost" use:enhance class="input-form">
+	<form method="post" action="?/createpost" class="input-form" use:enhance={({ formElement, formData, action, cancel, submitter }) => {
+		// `formElement` is this `<form>` element
+		// `formData` is its `FormData` object that's about to be submitted
+		// `action` is the URL to which the form is posted
+		// calling `cancel()` will prevent the submissionc
+		// `submitter` is the `HTMLElement` that caused the form to be submitted
+		formData.append('id', new_todo_id);
+		return async ({ result, update }) => {
+			// `result` is an `ActionResult` object
+			if (result.type === 'success') {
+					dbDexie.todos.filter(t => t.id === new_todo_id).modify({ synced: true });
+			}
+			// `update` is a function which triggers the default logic that would be triggered if this callback wasn't set
+			update();
+		};
+	}}
+	>
 		<input bind:value={newItem} name="content" placeholder="new todo item.." type="text" required
 					 onkeydown={(e) => addToListhandleKeydown(e)} />
 		<button aria-label="Add" disabled={!newItem} onclick={(e) => addToList(e.target.form)}>Add</button>
@@ -174,6 +192,7 @@
 	{:else}
 		<Todo todoList={todoListNotDeletedLocal} user={null} />
 	{/if}
+
 	<div class="footer-buttons">
 		<button aria-label="View deleted TODOs" onclick={() => location.href='/deleted'} type="button">View deleted</button>
 		<form method="post" action="?/deleteAllCompleted" use:enhance={({formData, cancel}) => {
@@ -195,8 +214,7 @@
 	</div>
 
 	{#if user}
-		<p>Currently, to view changes to your TODOs on another browser/device, you have to refresh the webpage.</p>
-		<p>In a future version, we plan to sync displayed todos automatically.</p>
+		<p>Currently, to view changes to your TODOs on <b>another</b> browser/device, you have to refresh manually.</p>
 	{:else}
 		<p>⚠️ Your TODOs are stored in your <a
 			href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API">browser</a>
