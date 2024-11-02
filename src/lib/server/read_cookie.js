@@ -11,13 +11,10 @@ export function read_user(valueOfLoggedInCookie) {
 		// For this example, it is hard-coded.
 		const uriDecodedPayload = decodeURIComponent(valueOfLoggedInCookie);
 		const base64DecodedBuffer = Buffer.from(uriDecodedPayload, 'base64');
-		const preJsonPayload = JSON.parse(base64DecodedBuffer.toString());
-		const jsonPayload = {
-			username: preJsonPayload.username,
-			user_id: preJsonPayload.user_id,
-			avatar: preJsonPayload.avatar,
-			group: preJsonPayload.group
-		};
+		const jsonPayload = JSON.parse(base64DecodedBuffer.toString());
+
+		let jsonPayload_hmac = jsonPayload['hmac'];
+		delete jsonPayload['hmac'];
 		const payloadSha = crypto
 			.createHash('sha256')
 			.update(JSON.stringify(jsonPayload))
@@ -27,7 +24,7 @@ export function read_user(valueOfLoggedInCookie) {
 			.update(payloadSha)
 			.digest('hex');
 
-		if (signed === preJsonPayload.hmac) {
+		if (signed === jsonPayload_hmac) {
 			// clients.get('some-session-id').emit('message', 'hello')
 			return jsonPayload;
 		}
