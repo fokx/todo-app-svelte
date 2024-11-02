@@ -72,7 +72,7 @@ export const actions = {
 	toggleTodo: async function ({ locals, request }) {
 		let user = locals.user;
 		const formData = await request.formData();
-		// const isChecked = formData.get('myCheckbox') === 'true';
+		// const isChecked = formData.get('myCheckbox') === 'on';
 		// let prev_done = formData.get('prev_done');
 		if (user) {
 			await db

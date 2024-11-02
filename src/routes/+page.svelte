@@ -31,9 +31,9 @@
 	let logging_in = $state(false);
 	let newItem = $state('');
 
-	let todoListNotDeleted = $derived(todoList?.filter(t => !t.deleted));
-	let todoListNotDeletedUncompletedCount = $derived(todoList?.filter(t => !t.deleted).filter(t => !t.done).length);
-	let todoListNotDeletedCount = $derived(todoList?.filter(t => !t.deleted).length);
+	let todoListNotDeletedCloud = $derived(todoList?.filter(t => !t.deleted));
+	let todoListNotDeletedUncompletedCountCloud = $derived(todoList?.filter(t => !t.deleted).filter(t => !t.done).length);
+	let todoListNotDeletedCountCloud = $derived(todoList?.filter(t => !t.deleted).length);
 
 	let todoListLocal = liveQuery(() =>
 			dbDexie.todos.orderBy('id').desc().toArray()
@@ -79,25 +79,25 @@
 	}
 
 	function deleteCompleted(form) {
-		if (user) {
-			// form.requestSubmit();
-		} else {
-			if (window.confirm('Do you really want to delete all completed TODOs?')) {
-				todoListNotDeletedLocal.forEach(todo => {
-					if (todo.done) {
-						dbDexie.todos.filter(t => t.id === todo.id).modify({ deleted: true });
-					}
-				});
-			}
+		// if (user) {
+		// form.requestSubmit();
+		// } else {
+		if (window.confirm('Do you really want to delete all completed TODOs?')) {
+			todoListNotDeletedLocal.forEach(todo => {
+				if (todo.done) {
+					dbDexie.todos.filter(t => t.id === todo.id).modify({ deleted: true });
+				}
+			});
 		}
+		// }
 	}
 
-	let todo_s_text = $derived('TODO' + (todoListNotDeletedCount > 1 ? 's' : ''));
+	let todo_s_text = $derived('TODO' + (todoListNotDeletedCountCloud > 1 ? 's' : ''));
 	let count_status = $derived((
-		(todoListNotDeletedCount > 0 ?
-			(todoListNotDeletedUncompletedCount > 0 ?
-				`${todoListNotDeletedUncompletedCount} out of ${todoListNotDeletedCount} ${todo_s_text} unfinished`
-				: (todoListNotDeletedCount === 1 ? 'The only' : 'All') + ` ${todoListNotDeletedCount} ${todo_s_text} finished`) : '')
+		(todoListNotDeletedCountCloud > 0 ?
+			(todoListNotDeletedUncompletedCountCloud > 0 ?
+				`${todoListNotDeletedUncompletedCountCloud} out of ${todoListNotDeletedCountCloud} ${todo_s_text} unfinished`
+				: (todoListNotDeletedCountCloud === 1 ? 'The only' : 'All') + ` ${todoListNotDeletedCountCloud} ${todo_s_text} finished`) : '')
 
 	));
 	let todo_s_text_local = $derived('TODO' + (todoListNotDeletedCountLocal > 1 ? 's' : ''));
@@ -152,7 +152,7 @@
 			<!--				</form>-->
 			<!--			</nav>-->
 			<!--			{#if logging_in}-->
-			<!--				<span class="logging-in-out">signing you in...</span>-->cc
+			<!--				<span class="logging-in-out">signing you in...</span>-->
 			<!--			{/if}-->
 		{/if}
 
@@ -188,7 +188,7 @@
 
 	<br />
 	{#if user}
-		<Todo todoList={todoListNotDeleted} user={user} />
+		<Todo todoList={todoListNotDeletedLocal} user={user} />
 	{:else}
 		<Todo todoList={todoListNotDeletedLocal} user={null} />
 	{/if}
@@ -196,17 +196,17 @@
 	<div class="footer-buttons">
 		<button aria-label="View deleted TODOs" onclick={() => location.href='/deleted'} type="button">View deleted</button>
 		<form method="post" action="?/deleteAllCompleted" use:enhance={({formData, cancel}) => {
-		if (user) {
-			if (!window.confirm('Do you really want to delete all completed TODOs?')) {
-			cancel();
-			}
-			return async ({ update }) => {
-				await update();
-			};
-		}
+		// if (user) {
+			// if (!window.confirm('Do you really want to delete all completed TODOs?')) {
+			// cancel();
+			// }
+			// return async ({ update }) => {
+			// 	await update();
+			// };
+		// }
 		}}>
 			<button aria-label="Remove all completed TODOs"
-							disabled={user?(!(todoListNotDeletedCount-todoListNotDeletedUncompletedCount)):(!(todoListNotDeletedCountLocal-todoListNotDeletedUncompletedCountLocal))}
+							disabled={!(todoListNotDeletedCountLocal-todoListNotDeletedUncompletedCountLocal)}
 							onclick={(e) => deleteCompleted(e.target.form)}
 			>Remove all completed
 			</button>

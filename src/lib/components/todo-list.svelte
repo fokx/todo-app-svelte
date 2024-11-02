@@ -10,15 +10,15 @@
 	} = $props();
 
 	let checked = false;
-
+	let new_text;
 	async function deleteTodo(e, index, done) {
-		if (user) {
+		// if (user) {
 			// e.target.form.requestSubmit();
-		} else {
+		// } else {
 			if (done || (!done && window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?'))) {
 				dbDexie.todos.filter(t => t.id === index).modify({ deleted: true });
 			}
-		}
+		// }
 	}
 
 
@@ -28,27 +28,24 @@
 	}
 
 	async function editTodo(e, index) {
-		if (user) {
+		// if (user) {
 			// e.target.form.requestSubmit();
-		} else {
+		// } else {
 			// todoList.splice(index, 1);
 			await dbDexie.todos.get({ id: index }).then(function(result) {
-				let new_text = prompt(`Change "${result.text}" to:`, result.text);
+				new_text = prompt(`Change "${result.text}" to:`, result.text);
 				if (new_text !== null && new_text !== '') {
 					dbDexie.todos.update(index, { text: new_text });
 				}
 			});
-		}
+		// }
 	}
 
 	export function handleCheckboxChange(e, id) {
-		// console.log(user);
+		updateDone(e, id);
 		if (user) {
 			e.target.form.requestSubmit();
-		} else {
-			updateDone(e, id);
 		}
-		// Trigger form submission programmatically
 	}
 </script>
 
@@ -62,21 +59,20 @@
 						action="?/toggleTodo"
 						use:enhance={() => {
         return async ({ result, update }) => {
-            if (result.type === 'success') {
-                await update();
-            }
+					// console.log(result);
+            // if (result.type === 'success') {
+            //     await update();
+            // }
         };
     }}>
-						<label>
-
+<!--						<label>-->
 							<input
 								type="checkbox"
 								name="myCheckbox"
 								checked={todo.done}
-								value="true"
 								onchange={(e) => handleCheckboxChange(e, todo.id)}
 							/>
-						</label>
+<!--						</label>-->
 						<input type="hidden" name="id" value={todo.id} />
 						<input type="hidden" name="prev_done" value={todo.done} />
 					</form>
@@ -89,11 +85,13 @@
 					{#if !isDeletedListPage}
 						<form method="post" action="?/deleteTodo" use:enhance={({formData, cancel}) => {
 					if (user){
-						if (!todo.done && !window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?')) {
-							cancel();
-						}else{return async ({ update }) => {
-				await update();
-			};}
+						// if (!todo.done && !window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?')) {
+						// 	cancel();
+						// }else{
+						return async ({ update }) => {
+							await update();
+						};
+					// }
 					}
 		}}>
 							<input type="hidden" name="id" value={todo.id} />
@@ -102,14 +100,14 @@
 					{/if}
 					<form method="post" action="?/editTodo" use:enhance={({formData, cancel}) => {
 					if (user) {
-						let new_text = prompt(`Change "${todo.text}" to:`, todo.text);
-			if (new_text !== null && new_text !== '') {
+						// let new_text = prompt(`Change "${todo.text}" to:`, todo.text);
+			// if (new_text !== null && new_text !== '') {
 				// console.log(formData);
 				// console.log(Object.keys(formData));
 				formData.set('new_text', new_text);
-			} else{
-				cancel();
-			}
+			// } else{
+			// 	cancel();
+			// }
 			return async ({ update }) => {
 				await update();
 			};
