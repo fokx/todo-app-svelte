@@ -11,33 +11,34 @@
 
 	let checked = false;
 	let new_text;
+
 	async function deleteTodo(e, index, done) {
 		// if (user) {
-			// e.target.form.requestSubmit();
+		// e.target.form.requestSubmit();
 		// } else {
-			if (done || (!done && window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?'))) {
-				dbDexie.todos.filter(t => t.id === index).modify({ deleted: true });
-			}
+		if (done || (!done && window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?'))) {
+			dbDexie.todos.filter(t => t.id === index).modify({ deleted: true, synced: false });
+		}
 		// }
 	}
 
 
 	function updateDone(ev, index) {
 		let done = ev.target.checked;
-		dbDexie.todos.update(index, { done: done });
+		dbDexie.todos.update(index, { done: done, synced: false });
 	}
 
 	async function editTodo(e, index) {
 		// if (user) {
-			// e.target.form.requestSubmit();
+		// e.target.form.requestSubmit();
 		// } else {
-			// todoList.splice(index, 1);
-			await dbDexie.todos.get({ id: index }).then(function(result) {
-				new_text = prompt(`Change "${result.text}" to:`, result.text);
-				if (new_text !== null && new_text !== '') {
-					dbDexie.todos.update(index, { text: new_text });
-				}
-			});
+		// todoList.splice(index, 1);
+		await dbDexie.todos.get({ id: index }).then(function(result) {
+			new_text = prompt(`Change "${result.text}" to:`, result.text);
+			if (new_text !== null && new_text !== '') {
+				dbDexie.todos.update(index, { text: new_text, synced: false });
+			}
+		});
 		// }
 	}
 
@@ -59,20 +60,23 @@
 						action="?/toggleTodo"
 						use:enhance={() => {
         return async ({ result, update }) => {
+					if (result.type === 'success') {
+					dbDexie.todos.filter(t => t.id === todo.id).modify({ synced: true });
+			}
 					// console.log(result);
             // if (result.type === 'success') {
             //     await update();
             // }
         };
     }}>
-<!--						<label>-->
-							<input
-								type="checkbox"
-								name="myCheckbox"
-								checked={todo.done}
-								onchange={(e) => handleCheckboxChange(e, todo.id)}
-							/>
-<!--						</label>-->
+						<!--						<label>-->
+						<input
+							type="checkbox"
+							name="myCheckbox"
+							checked={todo.done}
+							onchange={(e) => handleCheckboxChange(e, todo.id)}
+						/>
+						<!--						</label>-->
 						<input type="hidden" name="id" value={todo.id} />
 						<input type="hidden" name="prev_done" value={todo.done} />
 					</form>
@@ -88,10 +92,12 @@
 						// if (!todo.done && !window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?')) {
 						// 	cancel();
 						// }else{
-						return async ({ update }) => {
-							await update();
+						return async ({ result, update }) => {
+							if (result.type === 'success') {
+								dbDexie.todos.filter(t => t.id === todo.id).modify({ synced: true });
+								await update();
+							}
 						};
-					// }
 					}
 		}}>
 							<input type="hidden" name="id" value={todo.id} />
@@ -108,7 +114,10 @@
 			// } else{
 			// 	cancel();
 			// }
-			return async ({ update }) => {
+			return async ({ result, update }) => {
+				if (result.type === 'success') {
+					dbDexie.todos.filter(t => t.id === todo.id).modify({ synced: true });
+			}
 				await update();
 			};
 					}

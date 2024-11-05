@@ -24,31 +24,63 @@
 
 	/** @type {import('./$types').PageData} */
 	let { data } = $props();
-
 	let user = $derived(data.user);
-	let todoList = $derived(data.cloud_posts);
+	let todoListCloud = $derived(data.cloud_posts);
 	let logging_out = $state(false);
 	let logging_in = $state(false);
 	let newItem = $state('');
-
-	let todoListNotDeletedCloud = $derived(todoList?.filter(t => !t.deleted));
-	let todoListNotDeletedUncompletedCountCloud = $derived(todoList?.filter(t => !t.deleted).filter(t => !t.done).length);
-	let todoListNotDeletedCountCloud = $derived(todoList?.filter(t => !t.deleted).length);
+	let todoListNotDeletedLocal = $state();
+	let todoListNotDeletedUncompletedCountLocal = $state();
+	let todoListNotDeletedCountLocal = $state();
+	let new_todo_id;
 
 	let todoListLocal = liveQuery(() =>
 			dbDexie.todos.orderBy('id').desc().toArray()
 		// async () => {return await dbDexie.todos.where("deleted").equals('false').toArray()} // where({'deleted': 'false'})
 	);
 
-	let todoListNotDeletedLocal = $state();
-	let todoListNotDeletedUncompletedCountLocal = $state();
-	let todoListNotDeletedCountLocal = $state();
-	todoListLocal.subscribe((todos) => {
-		todoListNotDeletedLocal = todos.filter(t => !t.deleted);
-		todoListNotDeletedUncompletedCountLocal = todos.filter(t => !t.deleted).filter(t => !t.done).length;
-		todoListNotDeletedCountLocal = todos.filter(t => !t.deleted).length;
+	let todoListNotDeletedCloud = $derived(todoListCloud?.filter(t => !t.deleted));
+	let todoListNotDeletedUncompletedCountCloud = $derived(todoListCloud?.filter(t => !t.deleted).filter(t => !t.done).length);
+	let todoListNotDeletedCountCloud = $derived(todoListCloud?.filter(t => !t.deleted).length);
+
+	let todo_s_text = $derived('TODO' + (todoListNotDeletedCountCloud > 1 ? 's' : ''));
+	let count_status = $derived((
+		(todoListNotDeletedCountCloud > 0 ?
+			(todoListNotDeletedUncompletedCountCloud > 0 ?
+				`${todoListNotDeletedUncompletedCountCloud} out of ${todoListNotDeletedCountCloud} ${todo_s_text} unfinished`
+				: (todoListNotDeletedCountCloud === 1 ? 'The only' : 'All') + ` ${todoListNotDeletedCountCloud} ${todo_s_text} finished`) : '')
+
+	));
+	let todo_s_text_local = $derived('TODO' + (todoListNotDeletedCountLocal > 1 ? 's' : ''));
+	let count_status_local = $derived((
+		(todoListNotDeletedCountLocal > 0 ?
+			(todoListNotDeletedUncompletedCountLocal > 0 ?
+				`${todoListNotDeletedUncompletedCountLocal} out of ${todoListNotDeletedCountLocal} ${todo_s_text_local} unfinished`
+				: (todoListNotDeletedCountLocal === 1 ? 'The only' : 'All') + ` ${todoListNotDeletedCountLocal} ${todo_s_text_local} finished`) : '')
+
+	));
+
+	let all_synced = $state();
+	todoListLocal.subscribe((todos_local) => {
+		todoListNotDeletedLocal = todos_local.filter(t => !t.deleted);
+		todoListNotDeletedUncompletedCountLocal = todos_local.filter(t => !t.deleted).filter(t => !t.done).length;
+		todoListNotDeletedCountLocal = todos_local.filter(t => !t.deleted).length;
+		// console.log(todos_local);
+		console.log(todoListCloud);
+		if (todoListCloud === null || todoListCloud === undefined ||
+			todoListCloud.length === 0 || (todos_local.length !== todoListCloud.length)) {
+			all_synced = false;
+		}
+		all_synced = todos_local.every((localTodo, index) => {
+			const cloudTodo = todoListCloud[index];
+			return (
+				localTodo.id === cloudTodo.id &&
+				localTodo.text === cloudTodo.text &&
+				localTodo.done === cloudTodo.done &&
+				localTodo.deleted === cloudTodo.deleted
+			);
+		});
 	});
-	let new_todo_id;
 
 	function addToListhandleKeydown(e) {
 		if (e.target.form.key === 'Enter') {
@@ -85,34 +117,16 @@
 		if (window.confirm('Do you really want to delete all completed TODOs?')) {
 			todoListNotDeletedLocal.forEach(todo => {
 				if (todo.done) {
-					dbDexie.todos.filter(t => t.id === todo.id).modify({ deleted: true });
+					dbDexie.todos.filter(t => t.id === todo.id).modify({ deleted: true, synced: false });
 				}
 			});
 		}
 		// }
 	}
 
-	let todo_s_text = $derived('TODO' + (todoListNotDeletedCountCloud > 1 ? 's' : ''));
-	let count_status = $derived((
-		(todoListNotDeletedCountCloud > 0 ?
-			(todoListNotDeletedUncompletedCountCloud > 0 ?
-				`${todoListNotDeletedUncompletedCountCloud} out of ${todoListNotDeletedCountCloud} ${todo_s_text} unfinished`
-				: (todoListNotDeletedCountCloud === 1 ? 'The only' : 'All') + ` ${todoListNotDeletedCountCloud} ${todo_s_text} finished`) : '')
-
-	));
-	let todo_s_text_local = $derived('TODO' + (todoListNotDeletedCountLocal > 1 ? 's' : ''));
-	let count_status_local = $derived((
-		(todoListNotDeletedCountLocal > 0 ?
-			(todoListNotDeletedUncompletedCountLocal > 0 ?
-				`${todoListNotDeletedUncompletedCountLocal} out of ${todoListNotDeletedCountLocal} ${todo_s_text_local} unfinished`
-				: (todoListNotDeletedCountLocal === 1 ? 'The only' : 'All') + ` ${todoListNotDeletedCountLocal} ${todo_s_text_local} finished`) : '')
-
-	));
-
-
 	onMount(() => {
 		if (!window.indexedDB) {
-			alert('Unsupported Browser: Indexed DB is not supported!');
+			alert('This todo app is not unsupported on this browser. \nReason: Indexed DB is not supported!');
 		}
 	});
 
@@ -158,8 +172,9 @@
 
 	</div>
 
+	<p>synced with cloud: {all_synced}</p>
 	{#if user}
-		<p>{count_status}</p>
+		<p>{count_status_local}</p>
 	{:else}
 		<p>{count_status_local}</p>
 	{/if}
@@ -179,8 +194,7 @@
 			// `update` is a function which triggers the default logic that would be triggered if this callback wasn't set
 			update();
 		};
-	}}
-	>
+	}}>
 		<input bind:value={newItem} name="content" placeholder="new todo item.." type="text" required
 					 onkeydown={(e) => addToListhandleKeydown(e)} />
 		<button aria-label="Add" disabled={!newItem} onclick={(e) => addToList(e.target.form)}>Add</button>
@@ -204,6 +218,18 @@
 			// 	await update();
 			// };
 		// }
+		return async ({ result, update }) => {
+			// `result` is an `ActionResult` object
+			if (result.type === 'success') {
+								todoListNotDeletedLocal.forEach(todo => {
+				if (todo.done) {
+					dbDexie.todos.filter(t => t.deleted === true).modify({ synced: true });
+				}
+			});
+			}
+			// `update` is a function which triggers the default logic that would be triggered if this callback wasn't set
+			// update();
+		};
 		}}>
 			<button aria-label="Remove all completed TODOs"
 							disabled={!(todoListNotDeletedCountLocal-todoListNotDeletedUncompletedCountLocal)}

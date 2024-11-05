@@ -13,7 +13,7 @@ export async function load(event) {
 			.select()
 			.from(todos)
 			.where(eq(todos.user_id, user.user_id))
-			.orderBy(desc(todos.created_at));
+			.orderBy(desc(todos.id));
 	}
 	return {
 		user: event.locals.user,
