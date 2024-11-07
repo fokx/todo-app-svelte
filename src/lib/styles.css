@@ -13,7 +13,7 @@ html {
     html {
         --bg-1: #2e2e2e;
         --bg-2: #4d4d4d;
-        --bg-3: #666;
+        --bg-3: #6c66;
         --fg-1: #e6e6e6;
         --fg-2: #b3b3b3;
         --fg-3: #999;
@@ -271,4 +271,18 @@ ul.todos button:hover {
     h2 {
         display: inline;
     }
+}
+
+.filter-svg {
+    /* https://codepen.io/sosuke/pen/Pjoqqp */
+    filter: invert(85%) sepia(0%) saturate(1828%) hue-rotate(316deg) brightness(83%) contrast(94%);
+    cursor: pointer;
+    height: 80%;
+    aspect-ratio: 1;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.filter-svg button:hover {
+    opacity: 1;
 }

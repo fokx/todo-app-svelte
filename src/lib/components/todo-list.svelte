@@ -86,24 +86,6 @@
 				<!--<input class:checked={todo.done} type="text" name="tmp" value={todo.text}/>-->
 
 				<div class="right-buttons">
-					{#if !isDeletedListPage}
-						<form method="post" action="?/deleteTodo" use:enhance={({formData, cancel}) => {
-					if (user){
-						// if (!todo.done && !window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?')) {
-						// 	cancel();
-						// }else{
-						return async ({ result, update }) => {
-							if (result.type === 'success') {
-								dbDexie.todos.filter(t => t.id === todo.id).modify({ synced: true });
-								await update();
-							}
-						};
-					}
-		}}>
-							<input type="hidden" name="id" value={todo.id} />
-							<button onclick={(e)=>deleteTodo(e, todo.id, todo.done)}>Remove</button>
-						</form>
-					{/if}
 					<form method="post" action="?/editTodo" use:enhance={({formData, cancel}) => {
 					if (user) {
 						// let new_text = prompt(`Change "${todo.text}" to:`, todo.text);
@@ -123,8 +105,28 @@
 					}
 		}}>
 						<input type="hidden" name="id" value={todo.id} />
-						<button onclick={(e)=>editTodo(e, todo.id)}>Edit</button>
+						<button aria-label="edit todo" style="background: url(./edit.svg) no-repeat 50% 50%;" class="filter-svg" onclick={(e)=>editTodo(e, todo.id)}></button>
 					</form>
+
+					{#if !isDeletedListPage}
+						<form method="post" action="?/deleteTodo" use:enhance={({formData, cancel}) => {
+					if (user){
+						// if (!todo.done && !window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?')) {
+						// 	cancel();
+						// }else{
+						return async ({ result, update }) => {
+							if (result.type === 'success') {
+								dbDexie.todos.filter(t => t.id === todo.id).modify({ synced: true });
+								await update();
+							}
+						};
+					}
+		}}>
+							<input type="hidden" name="id" value={todo.id} />
+							<button aria-label="remove todo" style="background: url(./remove.svg) no-repeat 50% 50%;" class="filter-svg" onclick={(e)=>deleteTodo(e, todo.id, todo.done)}></button>
+						</form>
+					{/if}
+
 				</div>
 
 				<br />

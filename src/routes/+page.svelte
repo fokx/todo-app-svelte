@@ -175,7 +175,7 @@
 
 	</div>
 
-	<p>synced with cloud: {all_synced}</p>
+<!--	<p>synced with cloud: {all_synced}</p>-->
 	{#if user}
 		<p>{count_status_local}</p>
 	{:else}
