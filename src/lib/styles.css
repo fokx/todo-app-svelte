@@ -264,3 +264,11 @@ ul.todos button:hover {
     flex: 1;
 }
 
+.header-login {
+    p {
+        display: inline;
+    }
+    h2 {
+        display: inline;
+    }
+}

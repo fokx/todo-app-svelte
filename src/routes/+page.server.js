@@ -31,7 +31,7 @@ export const actions = {
 				done: false,
 				deleted: false,
 				synced: true,
-				user_agent: request.headers['user-agent']
+				user_agent: request.headers['user-agent'],
 			});
 		}
 	},

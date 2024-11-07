@@ -66,20 +66,21 @@
 		todoListNotDeletedUncompletedCountLocal = todos_local.filter(t => !t.deleted).filter(t => !t.done).length;
 		todoListNotDeletedCountLocal = todos_local.filter(t => !t.deleted).length;
 		// console.log(todos_local);
-		console.log(todoListCloud);
+		// console.log(todoListCloud);
 		if (todoListCloud === null || todoListCloud === undefined ||
 			todoListCloud.length === 0 || (todos_local.length !== todoListCloud.length)) {
 			all_synced = false;
+		} else {
+			all_synced = todos_local.every((localTodo, index) => {
+				const cloudTodo = todoListCloud[index];
+				return (
+					localTodo.id === cloudTodo.id &&
+					localTodo.text === cloudTodo.text &&
+					localTodo.done === cloudTodo.done &&
+					localTodo.deleted === cloudTodo.deleted
+				);
+			});
 		}
-		all_synced = todos_local.every((localTodo, index) => {
-			const cloudTodo = todoListCloud[index];
-			return (
-				localTodo.id === cloudTodo.id &&
-				localTodo.text === cloudTodo.text &&
-				localTodo.done === cloudTodo.done &&
-				localTodo.deleted === cloudTodo.deleted
-			);
-		});
 	});
 
 	function addToListhandleKeydown(e) {
@@ -101,7 +102,9 @@
 			text: newItem,
 			done: false,
 			deleted: false,
-			synced: false
+			synced: false,
+			created_at: new Date(),
+			updated_at: new Date(),
 		});
 		// newItem = '';
 		// if (user) {

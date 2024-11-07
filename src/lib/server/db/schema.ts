@@ -3,17 +3,14 @@ import { generateId } from 'lucia';
 const common_timestamps = {
 	created_at: integer({ mode: 'timestamp' })
 		.$defaultFn(() => new Date()),
-	deleted_at: integer({ mode: 'timestamp' })
-		.$defaultFn(() => new Date()),
+	deleted_at: integer({ mode: 'timestamp' }),
 	updated_at: integer({ mode: 'timestamp' })
 		.$defaultFn(() => new Date()),
 };
 
 const todo_extra_timestamps = {
-	done_at: integer({ mode: 'timestamp' })
-		.$defaultFn(() => new Date()),
-	syncedAt: integer({ mode: 'timestamp' })
-		.$defaultFn(() => new Date())
+	done_at: integer({ mode: 'timestamp' }),
+	synced_at: integer({ mode: 'timestamp' }),
 };
 
 export const todos = sqliteTable('todos', {

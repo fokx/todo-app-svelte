@@ -11,7 +11,7 @@ export const dbDexie = new Dexie('todo_app', );
 // 	});
 // } else {
 dbDexie.version(1).stores({
-	todos: 'id, text, done, deleted, synced, user_agent, id_cloud' // '@' = auto-generated global ID
+	todos: '&id, user_id, user_name, email, text, done, deleted, synced, user_agent, id_cloud, created_at, deleted_at, updated_at, done_at, synced_at'
 });
 
 // dbDexie.cloud.configure({

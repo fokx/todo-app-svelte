@@ -8,7 +8,7 @@
 		user,
 		isDeletedListPage = false
 	} = $props();
-
+	let todoListSorted = $derived(todoList ? todoList.sort((b, a) => new Date(a.created_at) - new Date(b.created_at)) : []);
 	let checked = false;
 	let new_text;
 
@@ -51,8 +51,8 @@
 </script>
 
 <ul class="todos">
-	{#if todoList}
-		{#each todoList as todo, index (todo.id)}
+	{#if todoListSorted}
+		{#each todoListSorted as todo, index (todo.id)}
 			<li transition:fade={{  duration: 100}}>
 				{#if !isDeletedListPage}
 					<form
