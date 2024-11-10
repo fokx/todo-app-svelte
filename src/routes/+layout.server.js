@@ -12,7 +12,7 @@ export async function load(event) {
 		cloud_posts = await db
 			.select()
 			.from(todos)
-			.where(eq(todos.user_id, user.user_id))
+			.where(eq(todos.user_id, user.id))
 			.orderBy(desc(todos.id));
 	}
 	return {
