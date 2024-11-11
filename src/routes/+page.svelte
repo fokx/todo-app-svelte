@@ -131,7 +131,32 @@
 		if (!window.indexedDB) {
 			alert('This todo app is not unsupported on this browser. \nReason: Indexed DB is not supported!');
 		}
+		if ('serviceWorker' in navigator) {
+			console.log('Service Worker is supported');
+			navigator.serviceWorker.addEventListener('message', event => {
+				if (event.data.type === 'ONLINE_STATUS') {
+					updateOnlineStatus(event.data.online);
+				}
+			});
+		}
 	});
+
+
+	function updateOnlineStatus(isOnline) {
+		console.log('updateOnlineStatus:', isOnline);
+		const statusElement = document.getElementById('online-status');
+		if (isOnline) {
+			console.log('online');
+			statusElement.textContent = 'Online';
+			statusElement.classList.add('online');
+			statusElement.classList.remove('offline');
+		} else {
+			console.log('offline');
+			statusElement.textContent = 'Offline';
+			statusElement.classList.add('offline');
+			statusElement.classList.remove('online');
+		}
+	}
 
 </script>
 
@@ -156,6 +181,7 @@
 			<!--			{#if logging_out}-->
 			<!--				<span class="logging-in-out">logging you out...</span>-->
 			<!--			{/if}-->
+			<p>synced with cloud: {all_synced}</p>
 		{:else}
 			<h2>My TODO List</h2>
 			<!--			<nav data-sveltekit-reload>-->
@@ -172,15 +198,11 @@
 			<!--				<span class="logging-in-out">signing you in...</span>-->
 			<!--			{/if}-->
 		{/if}
-
 	</div>
+	<div id="online-status" class="status">Checking status...</div>
+	<p>{count_status_local}</p>
 
-<!--	<p>synced with cloud: {all_synced}</p>-->
-	{#if user}
-		<p>{count_status_local}</p>
-	{:else}
-		<p>{count_status_local}</p>
-	{/if}
+
 
 	<form method="post" action="?/createpost" class="input-form" use:enhance={({ formElement, formData, action, cancel, submitter }) => {
 		// `formElement` is this `<form>` element

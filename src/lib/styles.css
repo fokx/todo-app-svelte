@@ -286,3 +286,19 @@ ul.todos button:hover {
 .filter-svg button:hover {
     opacity: 1;
 }
+
+.status {
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.online {
+    background-color: green;
+    color: white;
+}
+
+.offline {
+    background-color: red;
+    color: white;
+}
