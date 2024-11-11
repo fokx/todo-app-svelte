@@ -282,12 +282,15 @@ ul.todos button:hover {
 
 .header {
     display: inline;
+
     p {
         display: inline;
     }
+
     h2 {
         display: inline;
     }
+
     .status {
         padding: 8px;
         border-radius: 4px;
@@ -300,15 +303,19 @@ ul.todos button:hover {
     .synced {
         color: green;
     }
+
     .syncing {
         color: orange;
     }
+
     .divergent {
         color: red;
     }
+
     .online {
         color: green;
     }
+
     .offline {
         color: red;
     }

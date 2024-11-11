@@ -7,7 +7,7 @@ export async function load(event) {
 	let cloud_posts;
 	let user = event.locals.user;
 	if (!user) {
-		// return redirect(302, '/login/sso');
+		// return redirect(302, '/login');
 	} else {
 		cloud_posts = await db
 			.select()

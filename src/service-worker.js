@@ -12,18 +12,19 @@ const CACHE = `cache-${version}`;
 console.log('installing service worker', CACHE);
 const ASSETS = [
 	...build, // the app itself
-	...files  // everything in `static`
+	...files // everything in `static`
 ];
 
 async function checkOnlineStatus() {
 	const isOnline = navigator.onLine;
-	self.clients.matchAll().then(clients => {
-		clients.forEach(client => client.postMessage({ type: 'ONLINE_STATUS', online: isOnline }));
+	self.clients.matchAll().then((clients) => {
+		clients.forEach((client) => client.postMessage({ type: 'ONLINE_STATUS', online: isOnline }));
 	});
 }
+
 async function checkSyncStatus() {
-	self.clients.matchAll().then(clients => {
-		clients.forEach(client => client.postMessage({ type: 'SYNC_STATUS' }));
+	self.clients.matchAll().then((clients) => {
+		clients.forEach((client) => client.postMessage({ type: 'SYNC_STATUS' }));
 	});
 }
 
@@ -52,6 +53,7 @@ sw.addEventListener('activate', (event) => {
 			if (key !== CACHE) await caches.delete(key);
 		}
 	}
+
 	// event.waitUntil(clients.claim());
 	event.waitUntil(deleteOldCaches());
 });

@@ -2,8 +2,6 @@
 import crypto from 'crypto';
 import 'dotenv/config';
 
-// import {clients} from '$lib/clients.js';
-
 export function read_user(valueOfLoggedInCookie) {
 	try {
 		// Get the value of the `logged_in` cookie from where ever makes sense

@@ -8,7 +8,7 @@
 	let { data } = $props();
 	let user = $derived(data.user);
 	let todoListLocal = liveQuery(() =>
-			dbDexie.todos.orderBy('id').desc().toArray()
+		dbDexie.todos.orderBy('id').desc().toArray()
 	);
 
 	let todoListDeletedLocal = $state();
@@ -28,6 +28,6 @@
 	<h2>Deleted TODOs:</h2>
 	<a href="/">Return to Main Page</a>
 	<hr>
-	<Todo todoList={todoListDeletedLocal} user={user} isDeletedListPage={true} />
+	<Todo isDeletedListPage={true} todoList={todoListDeletedLocal} user={user} />
 
 </div>

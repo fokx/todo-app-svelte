@@ -13,13 +13,9 @@
 	let new_text;
 
 	async function deleteTodo(e, index, done) {
-		// if (user) {
-		// e.target.form.requestSubmit();
-		// } else {
 		if (done || (!done && window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?'))) {
 			dbDexie.todos.filter(t => t.id === index).modify({ deleted: true, synced: false, updated_at: new Date() });
 		}
-		// }
 	}
 
 
@@ -29,17 +25,12 @@
 	}
 
 	async function editTodo(e, index) {
-		// if (user) {
-		// e.target.form.requestSubmit();
-		// } else {
-		// todoList.splice(index, 1);
 		await dbDexie.todos.get({ id: index }).then(function(result) {
 			new_text = prompt(`Change "${result.text}" to:`, result.text);
 			if (new_text !== null && new_text !== '') {
 				dbDexie.todos.update(index, { text: new_text, synced: false, updated_at: new Date() });
 			}
 		});
-		// }
 	}
 
 	export function handleCheckboxChange(e, id) {
@@ -51,7 +42,9 @@
 </script>
 
 <ul class="todos">
-	{#if todoListSorted}
+	{#if !todoListSorted || todoListSorted.length === 0}
+		<li>---Nothing yet---</li>
+	{:else }
 		{#each todoListSorted as todo, index (todo.id)}
 			<li transition:fade={{  duration: 100}}>
 				{#if !isDeletedListPage}
@@ -59,24 +52,19 @@
 						method="POST"
 						action="?/toggleTodo"
 						use:enhance={() => {
-        return async ({ result, update }) => {
-					if (result.type === 'success') {
-					dbDexie.todos.filter(t => t.id === todo.id).modify({ synced: true, updated_at: new Date() });
-			}
-					// should not perform update(), otherwise the checkbox sometimes flicker
-          //   if (result.type === 'success') {
-          //       await update();
-          //   }
-        };
-    }}>
-						<!--						<label>-->
+							return async ({ result, update }) => {
+								if (result.type === 'success') {
+									dbDexie.todos.filter(t => t.id === todo.id).modify({ synced: true, updated_at: new Date() });
+								}
+								// should not perform update() even if succeed, otherwise the checkbox sometimes flicker
+							};
+					}}>
 						<input
 							type="checkbox"
 							name="myCheckbox"
 							checked={todo.done}
 							onchange={(e) => handleCheckboxChange(e, todo.id)}
 						/>
-						<!--						</label>-->
 						<input type="hidden" name="id" value={todo.id} />
 						<input type="hidden" name="prev_done" value={todo.done} />
 					</form>
@@ -87,23 +75,16 @@
 
 				<div class="right-buttons">
 					<form method="post" action="?/editTodo" use:enhance={({formData, cancel}) => {
-					if (user) {
-						// let new_text = prompt(`Change "${todo.text}" to:`, todo.text);
-			// if (new_text !== null && new_text !== '') {
-				// console.log(formData);
-				// console.log(Object.keys(formData));
-				formData.set('new_text', new_text);
-			// } else{
-			// 	cancel();
-			// }
-			return async ({ result, update }) => {
-				if (result.type === 'success') {
-					dbDexie.todos.filter(t => t.id === todo.id).modify({ synced: true, updated_at: new Date() });
-					await update();
-				}
-			};
-					}
-		}}>
+						if (user) {
+							formData.set('new_text', new_text);
+							return async ({ result, update }) => {
+								if (result.type === 'success') {
+									dbDexie.todos.filter(t => t.id === todo.id).modify({ synced: true, updated_at: new Date() });
+									await update();
+								}
+							};
+						}
+					}}>
 						<input type="hidden" name="id" value={todo.id} />
 						<button aria-label="edit todo" style="background: url(./edit.svg) no-repeat 50% 50%;"
 										class="filter-svg" onclick={(e)=>editTodo(e, todo.id)}></button>
@@ -111,31 +92,23 @@
 
 					{#if !isDeletedListPage}
 						<form method="post" action="?/deleteTodo" use:enhance={({formData, cancel}) => {
-					if (user){
-						// if (!todo.done && !window.confirm('This hasn\'t been done yet.\nDo you really want to delete this?')) {
-						// 	cancel();
-						// }else{
-						return async ({ result, update }) => {
-							// console.log(result);
-							if (result.type === 'success') {
-								dbDexie.todos.filter(t => t.id === todo.id).modify({ synced: true, updated_at: new Date() });
-								await update();
+							if (user){
+								return async ({ result, update }) => {
+									if (result.type === 'success') {
+										dbDexie.todos.filter(t => t.id === todo.id).modify({ synced: true, updated_at: new Date() });
+										await update();
+									}
+								};
 							}
-						};
-					}
-		}}>
+						}}>
 							<input type="hidden" name="id" value={todo.id} />
 							<button aria-label="remove todo" style="background: url(./remove.svg) no-repeat 50% 50%;"
-							class="filter-svg" onclick={(e)=>deleteTodo(e, todo.id, todo.done)}></button>
+											class="filter-svg" onclick={(e)=>deleteTodo(e, todo.id, todo.done)}></button>
 						</form>
 					{/if}
-
 				</div>
-
 				<br />
 			</li>
 		{/each}
-	{:else }
-		<p>---Nothing yet---</p>
 	{/if}
 </ul>
