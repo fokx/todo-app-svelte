@@ -7,6 +7,7 @@ export async function load(event) {
 	let cloud_posts;
 	let user = event.locals.user;
 	if (!user) {
+		console.log('user not logged in, no sync will happen');
 		// return redirect(302, '/login');
 	} else {
 		cloud_posts = await db

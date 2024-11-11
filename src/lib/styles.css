@@ -300,16 +300,25 @@ ul.todos button:hover {
         border: 1px dashed #b3b3b3;
     }
 
-    .synced {
-        color: green;
+
+    .local {
+        color: grey;
+    }
+
+    .divergent {
+        color: red;
     }
 
     .syncing {
         color: orange;
     }
 
-    .divergent {
-        color: red;
+    .synced {
+        color: green;
+    }
+
+    .undefined {
+        color: purple;
     }
 
     .online {

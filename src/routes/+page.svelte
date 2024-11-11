@@ -5,7 +5,7 @@
 	import Todo from '$lib/components/todo-list.svelte';
 	import { derived } from 'svelte/store';
 	import { liveQuery } from 'dexie';
-	import { gen_todo_id } from '$lib/utils.js';
+	import { gen_todo_id, make_enum } from '$lib/utils.js';
 	import { browser } from '$app/environment';
 
 	/** @type {import('./$types').PageData} */
@@ -17,6 +17,7 @@
 	let todoListNotDeletedUncompletedCountLocal = $state();
 	let todoListNotDeletedCountLocal = $state();
 	let new_todo_id;
+	const SyncStatus = make_enum(['local', 'divergent', 'syncing', 'synced', 'undefined']);
 
 	let todoListLocal = liveQuery(() =>
 		dbDexie.todos.orderBy('id').desc().toArray()
@@ -30,26 +31,29 @@
 				: (todoListNotDeletedCountLocal === 1 ? 'The only' : 'All') + ` ${todoListNotDeletedCountLocal} ${todo_s_text_local} finished`) : '')
 	));
 
-	let all_synced = $state();
+	let sync_status = $state(SyncStatus.undefined);
 	todoListLocal.subscribe((todos_local) => {
 		todoListNotDeletedLocal = todos_local.filter(t => !t.deleted);
 		todoListNotDeletedUncompletedCountLocal = todos_local.filter(t => !t.deleted).filter(t => !t.done).length;
 		todoListNotDeletedCountLocal = todos_local.filter(t => !t.deleted).length;
 		if (todoListCloud === null || todoListCloud === undefined ||
 			todoListCloud.length === 0 || (todos_local.length !== todoListCloud.length)) {
-			all_synced = false;
+			sync_status = SyncStatus.divergent;
 		} else {
-			all_synced = todos_local.every((localTodo, index) => {
+			let tmp = todos_local.every((localTodo, index) => {
 				const cloudTodo = todoListCloud[index];
 				return (
 					localTodo.id === cloudTodo.id &&
 					localTodo.text === cloudTodo.text &&
 					localTodo.done === cloudTodo.done &&
 					localTodo.deleted === cloudTodo.deleted
-				);
+				)
 			});
+			if (tmp) {
+					sync_status = SyncStatus.synced;
+			}
 		}
-		updateSyncStatus(all_synced);
+		updateSyncStatus();
 	});
 
 	function addToListhandleKeydown(e) {
@@ -94,56 +98,72 @@
 					updateOnlineStatus(event.data.online);
 				}
 				if (event.data.type === 'SYNC_STATUS') {
-					updateSyncStatus(all_synced);
+					updateSyncStatus();
 				}
 			});
 		}
 	});
 
-	function updateSyncStatus(isSynced) {
-		console.log('updateSyncStatus:', isSynced);
-		const statusElement = document.getElementById('sync-status');
-		if (isSynced) {
-			console.log('synced');
-			if (statusElement) {
-				statusElement.textContent = 'Synced';
-				statusElement.classList.add('synced');
-				statusElement.classList.remove('divergent');
-			}
-		} else {
-			console.log('divergent');
-			if (statusElement) {
-				statusElement.textContent = 'Divergent';
-				statusElement.classList.add('divergent');
-				statusElement.classList.remove('synced');
+	function updateSyncStatus() {
+		if (browser) {
+			console.log('updateSyncStatus:', sync_status);
+			const ele = document.getElementById('sync-status');
+			if (ele) {
+				switch (sync_status) {
+					case SyncStatus.divergent:
+						ele.classList.remove(...Array.from(ele.classList).slice(1));
+						ele.textContent = 'Divergent';
+						ele.classList.add('divergent');
+						break;
+					case SyncStatus.syncing:
+						ele.classList.remove(...Array.from(ele.classList).slice(1));
+						ele.textContent = 'Syncing';
+						ele.classList.add('syncing');
+						break;
+					case SyncStatus.local:
+						ele.classList.remove(...Array.from(ele.classList).slice(1));
+						ele.textContent = 'Local';
+						ele.classList.add('local');
+						break;
+					case SyncStatus.synced:
+						ele.classList.remove(...Array.from(ele.classList).slice(1));
+						ele.textContent = 'Synced';
+						ele.classList.add('synced');
+						break;
+					default:
+						ele.classList.remove(...Array.from(ele.classList).slice(1));
+						ele.textContent = 'Undefined';
+						ele.classList.add('undefined');
+						break;
+				}
 			}
 		}
-
 	}
 
 	function updateOnlineStatus(isOnline) {
-		console.log('updateOnlineStatus:', isOnline);
-		const statusElement = document.getElementById('online-status');
-		if (isOnline) {
-			console.log('online');
-			if (statusElement) {
-				statusElement.textContent = 'Online';
-				statusElement.classList.add('online');
-				statusElement.classList.remove('offline');
-			}
-		} else {
-			console.log('offline');
-			if (statusElement) {
-				statusElement.textContent = 'Offline';
-				statusElement.classList.add('offline');
-				statusElement.classList.remove('online');
+		if (browser) {
+			console.log('updateOnlineStatus:', isOnline);
+			const statusElement = document.getElementById('online-status');
+			if (isOnline) {
+				console.log('online');
+				if (statusElement) {
+					statusElement.textContent = 'Online';
+					statusElement.classList.add('online');
+					statusElement.classList.remove('offline');
+				}
+			} else {
+				console.log('offline');
+				if (statusElement) {
+					statusElement.textContent = 'Offline';
+					statusElement.classList.add('offline');
+					statusElement.classList.remove('online');
+				}
 			}
 		}
 	}
 
-	if (browser) {
-		updateOnlineStatus(true);
-	}
+	updateOnlineStatus(true);
+	updateSyncStatus();
 
 </script>
 
