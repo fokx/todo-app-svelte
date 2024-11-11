@@ -123,7 +123,7 @@
 		if (window.confirm('Do you really want to delete all completed TODOs?')) {
 			todoListNotDeletedLocal.forEach(todo => {
 				if (todo.done) {
-					dbDexie.todos.filter(t => t.id === todo.id).modify({ deleted: true, synced: false });
+					dbDexie.todos.filter(t => t.id === todo.id).modify({ deleted: true, synced: false , updated_at: new Date()});
 				}
 			});
 		}
@@ -246,10 +246,10 @@
 		return async ({ result, update }) => {
 			// `result` is an `ActionResult` object
 			if (result.type === 'success') {
-					dbDexie.todos.filter(t => t.id === new_todo_id).modify({ synced: true });
+					dbDexie.todos.filter(t => t.id === new_todo_id).modify({ synced: true, updated_at: new Date() });
+					// `update` is a function which triggers the default logic that would be triggered if this callback wasn't set
+					update();
 			}
-			// `update` is a function which triggers the default logic that would be triggered if this callback wasn't set
-			update();
 		};
 	}}>
 		<input bind:value={newItem} name="content" placeholder="new todo item.." type="text" required
@@ -280,12 +280,11 @@
 			if (result.type === 'success') {
 								todoListNotDeletedLocal.forEach(todo => {
 				if (todo.done) {
-					dbDexie.todos.filter(t => t.deleted === true).modify({ synced: true });
+					dbDexie.todos.filter(t => t.deleted === true).modify({ synced: true , updated_at: new Date()});
 				}
 			});
+								update();
 			}
-			// `update` is a function which triggers the default logic that would be triggered if this callback wasn't set
-			// update();
 		};
 		}}>
 			<button aria-label="Remove all completed TODOs"

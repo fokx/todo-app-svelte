@@ -30,4 +30,9 @@ You can preview the production build with `pnpm run preview`.
 * double-clicking on the 'new todo' input field will cause double submission
 
 ## Dev Notes
-setting cookies for `127.0.0.1` is different from `localhost`.
+* setting cookies for `127.0.0.1` is different from `localhost`.
+* data syncing / merging policy:
+  * only happen when you perform CRUD, no background / periodic sync, and use previously fetched `data.cloud_posts`
+  * resolve data discrepancies between server and local storage on local side and send _diff_ to server
+  * for diverging items with the same id, those with latest `updated_by` are kept
+  * other client will have to manually refresh to get the modified data (TODO: server side push)

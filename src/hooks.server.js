@@ -3,7 +3,6 @@ import {read_user} from '$lib/server/read_cookie'
 export const handle = async ({ event, resolve }) => {
 	// const sessionId = event.cookies.get(lucia.sessionCookieName);
 	if (!event.locals.user) {
-
 		const ext_cookie = event.cookies.get(process.env.COOKIE_NAME);
 		if (ext_cookie) {
 			let user = read_user(ext_cookie);
