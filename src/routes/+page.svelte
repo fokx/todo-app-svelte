@@ -7,6 +7,7 @@
 	// import { source } from 'sveltekit-sse';
 	import { liveQuery } from 'dexie';
 	import { gen_todo_id } from '$lib/utils.js';
+	import { browser } from '$app/environment';
 	//
 	// const connection = source('/custom-event', {
 	// 	close({ connect }) {
@@ -81,6 +82,8 @@
 				);
 			});
 		}
+		updateSyncStatus(all_synced);
+
 	});
 
 	function addToListhandleKeydown(e) {
@@ -104,7 +107,7 @@
 			deleted: false,
 			synced: false,
 			created_at: new Date(),
-			updated_at: new Date(),
+			updated_at: new Date()
 		});
 		// newItem = '';
 		// if (user) {
@@ -137,25 +140,56 @@
 				if (event.data.type === 'ONLINE_STATUS') {
 					updateOnlineStatus(event.data.online);
 				}
+				if (event.data.type === 'SYNC_STATUS') {
+					updateSyncStatus(all_synced);
+				}
 			});
 		}
 	});
 
+	function updateSyncStatus(isSynced) {
+		console.log('updateSyncStatus:', isSynced);
+		const statusElement = document.getElementById('sync-status');
+		if (isSynced) {
+			console.log('synced');
+			if (statusElement) {
+				statusElement.textContent = 'Synced';
+				statusElement.classList.add('synced');
+				statusElement.classList.remove('divergent');
+			}
+		} else {
+			console.log('divergent');
+			if (statusElement) {
+				statusElement.textContent = 'Divergent';
+				statusElement.classList.add('divergent');
+				statusElement.classList.remove('synced');
+			}
+		}
+
+	}
 
 	function updateOnlineStatus(isOnline) {
 		console.log('updateOnlineStatus:', isOnline);
 		const statusElement = document.getElementById('online-status');
 		if (isOnline) {
 			console.log('online');
-			statusElement.textContent = 'Online';
-			statusElement.classList.add('online');
-			statusElement.classList.remove('offline');
+			if (statusElement) {
+				statusElement.textContent = 'Online';
+				statusElement.classList.add('online');
+				statusElement.classList.remove('offline');
+			}
 		} else {
 			console.log('offline');
-			statusElement.textContent = 'Offline';
-			statusElement.classList.add('offline');
-			statusElement.classList.remove('online');
+			if (statusElement) {
+				statusElement.textContent = 'Offline';
+				statusElement.classList.add('offline');
+				statusElement.classList.remove('online');
+			}
 		}
+	}
+
+	if (browser) {
+		updateOnlineStatus(true);
 	}
 
 </script>
@@ -166,42 +200,40 @@
 
 <div class="centered">
 	<!--<p>{$server_event_value}</p>-->
-	<div class="header-login">
-		{#if user}
-			<h2>{user.username}'s TODO List</h2>
-			<!--			<form method="post" action="?/logout" use:enhance={() => {-->
-			<!--			logging_out = true;-->
-			<!--			return async ({ update }) => {-->
-			<!--				await update();-->
-			<!--				logging_out = false;-->
-			<!--			};-->
-			<!--		}}>-->
-			<!--				<button aria-label="Sign out">Sign out</button>-->
-			<!--			</form>-->
-			<!--			{#if logging_out}-->
-			<!--				<span class="logging-in-out">logging you out...</span>-->
-			<!--			{/if}-->
-			<p>synced with cloud: {all_synced}</p>
-		{:else}
-			<h2>My TODO List</h2>
-			<!--			<nav data-sveltekit-reload>-->
-			<!--				<form method="post" action="?/login" use:enhance={() => {-->
-			<!--			logging_in = true;-->
-			<!--			return async ({ update }) => {-->
-			<!--				await update();-->
-			<!--			};-->
-			<!--		}}>-->
-			<!--					<button aria-label="Sign in">Sign in</button>-->
-			<!--				</form>-->
-			<!--			</nav>-->
-			<!--			{#if logging_in}-->
-			<!--				<span class="logging-in-out">signing you in...</span>-->
-			<!--			{/if}-->
-		{/if}
+	<div class="header">
+			<h2>{user ? user.username + "'s" : "My"} TODO List</h2>
+					<div id="sync-status" class="status"></div>
+					<div id="online-status" class="status">Checking online...</div>
+
 	</div>
-	<div id="online-status" class="status">Checking status...</div>
+
 	<p>{count_status_local}</p>
 
+	<!--			<form method="post" action="?/logout" use:enhance={() => {-->
+	<!--			logging_out = true;-->
+	<!--			return async ({ update }) => {-->
+	<!--				await update();-->
+	<!--				logging_out = false;-->
+	<!--			};-->
+	<!--		}}>-->
+	<!--				<button aria-label="Sign out">Sign out</button>-->
+	<!--			</form>-->
+	<!--			{#if logging_out}-->
+	<!--				<span class="logging-in-out">logging you out...</span>-->
+	<!--			{/if}-->
+	<!--			<nav data-sveltekit-reload>-->
+	<!--				<form method="post" action="?/login" use:enhance={() => {-->
+	<!--			logging_in = true;-->
+	<!--			return async ({ update }) => {-->
+	<!--				await update();-->
+	<!--			};-->
+	<!--		}}>-->
+	<!--					<button aria-label="Sign in">Sign in</button>-->
+	<!--				</form>-->
+	<!--			</nav>-->
+	<!--			{#if logging_in}-->
+	<!--				<span class="logging-in-out">signing you in...</span>-->
+	<!--			{/if}-->
 
 
 	<form method="post" action="?/createpost" class="input-form" use:enhance={({ formElement, formData, action, cancel, submitter }) => {

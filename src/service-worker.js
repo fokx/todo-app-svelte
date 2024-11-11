@@ -15,38 +15,25 @@ const ASSETS = [
 	...files  // everything in `static`
 ];
 
+async function checkOnlineStatus() {
+	const isOnline = navigator.onLine;
+	self.clients.matchAll().then(clients => {
+		clients.forEach(client => client.postMessage({ type: 'ONLINE_STATUS', online: isOnline }));
+	});
+}
+async function checkSyncStatus() {
+	self.clients.matchAll().then(clients => {
+		clients.forEach(client => client.postMessage({ type: 'SYNC_STATUS' }));
+	});
+}
+
 navigator.connection.onchange = (e) => {
-	if (navigator.onLine) {
-		console.log("You are online");
-		self.clients.matchAll().then(clients => {
-			console.log('sending online message to clients');
-			clients.forEach(client => client.postMessage({ type: 'ONLINE_STATUS', online: true }));
-		})
-	} else {
-		console.log("You are offline");
-		self.clients.matchAll().then(clients => {
-			console.log('sending offline message to clients');
-			clients.forEach(client => client.postMessage({ type: 'ONLINE_STATUS', online: false }));
-		})
-	}
+	checkOnlineStatus();
 };
 
-/* // this doesn't work:
-// sw.addEventListener('online', () => {
-// 	console.log('online, sending message to clients');
-// 	sw.clients.matchAll().then(clients => {
-// 		clients.forEach(client => client.postMessage({ type: 'ONLINE_STATUS', online: true }));
-// 	});
-// });
-
-// sw.addEventListener('offline', () => {
-// 	console.log('offline, sending message to clients');
-// 	sw.clients.matchAll().then(clients => {
-// 		clients.forEach(client => client.postMessage({ type: 'ONLINE_STATUS', online: false }));
-// 	});
-// });
-*/
-
+// Check status every 5 seconds
+setInterval(checkOnlineStatus, 5 * 1000);
+setInterval(checkSyncStatus, 5 * 1000);
 
 sw.addEventListener('install', (event) => {
 	// Create a new cache and add all files to it

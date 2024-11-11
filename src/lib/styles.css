@@ -264,14 +264,6 @@ ul.todos button:hover {
     flex: 1;
 }
 
-.header-login {
-    p {
-        display: inline;
-    }
-    h2 {
-        display: inline;
-    }
-}
 
 .filter-svg {
     /* https://codepen.io/sosuke/pen/Pjoqqp */
@@ -287,18 +279,37 @@ ul.todos button:hover {
     opacity: 1;
 }
 
-.status {
-    padding: 10px;
-    border-radius: 5px;
-    text-align: center;
-}
 
-.online {
-    background-color: green;
-    color: white;
-}
+.header {
+    display: inline;
+    p {
+        display: inline;
+    }
+    h2 {
+        display: inline;
+    }
+    .status {
+        padding: 8px;
+        border-radius: 4px;
+        text-align: center;
+        display: inline;
+        opacity: 0.8;
+        border: 1px dashed #b3b3b3;
+    }
 
-.offline {
-    background-color: red;
-    color: white;
+    .synced {
+        color: green;
+    }
+    .syncing {
+        color: orange;
+    }
+    .divergent {
+        color: red;
+    }
+    .online {
+        color: green;
+    }
+    .offline {
+        color: red;
+    }
 }
