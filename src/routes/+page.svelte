@@ -38,37 +38,85 @@
 
 	});
 	$effect(() => {
-		console.log('$todoListLocal', $todoListLocal);
-		if ($todoListLocal === undefined) {
-			return;
-		}
-		console.log('todoListCloud', todoListCloud);
-		console.log('sync_status', sync_status);
-		if (sync_status !== SyncStatus.syncing) {
-			if (todoListCloud === null || todoListCloud === undefined || todoListCloud.length === 0) {
-				sync_status = SyncStatus.empty;
-			} else if (todoListCloud.length === undefined) {
-				sync_status = SyncStatus.undefined;
-			} else if ($todoListLocal.length !== todoListCloud.length) {
-				sync_status = SyncStatus.divergent;
-			} else {
-				let all_match = $todoListLocal.every((localTodo, index) => {
-					const cloudTodo = todoListCloud[index];
-					return (
-						localTodo.id === cloudTodo.id &&
-						localTodo.text === cloudTodo.text &&
-						localTodo.done === cloudTodo.done &&
-						localTodo.deleted === cloudTodo.deleted
-					);
-				});
-				if (all_match) {
-					sync_status = SyncStatus.synced;
-				} else {
+		if (user && $todoListLocal) {
+			console.log('$todoListLocal', $todoListLocal);
+			console.log('todoListCloud', todoListCloud);
+			console.log('sync_status old', sync_status);
+			if (sync_status !== SyncStatus.syncing) {
+				if (todoListCloud === null || todoListCloud === undefined || todoListCloud.length === 0) {
+					sync_status = SyncStatus.empty;
+				} else if (todoListCloud.length === undefined) {
+					sync_status = SyncStatus.undefined;
+				} else if ($todoListLocal.length !== todoListCloud.length) {
 					sync_status = SyncStatus.divergent;
+				} else {
+					let all_match = $todoListLocal.every((localTodo, index) => {
+						const cloudTodo = todoListCloud[index];
+						return (
+							localTodo.id === cloudTodo.id &&
+							localTodo.text === cloudTodo.text &&
+							localTodo.done === cloudTodo.done &&
+							localTodo.deleted === cloudTodo.deleted
+						);
+					});
+					if (all_match) {
+						sync_status = SyncStatus.synced;
+					} else {
+						sync_status = SyncStatus.divergent;
+					}
+				}
+			}
+			if (sync_status === SyncStatus.divergent) {
+				let reqs = [];
+				let map_local_ids = new Map($todoListLocal.map(i => [i.id, i]));
+				let map_cloud_ids = new Map(todoListCloud.map(i => [i.id, i]));
+				let ids_joint = (new Set(map_local_ids.keys())).intersection((new Set(map_cloud_ids.keys())));
+				for (let id of ids_joint) {
+					let local = map_local_ids.get(id);
+					let cloud = map_cloud_ids.get(id);
+					if (!(local.text === cloud.text && local.done === cloud.done && local.deleted === cloud.deleted)) {
+						if (local.updated_at < cloud.updated_at) {
+							dbDexie.todos.filter(t => t.id === id).modify({
+								text: cloud.text,
+								done: cloud.done,
+								deleted: cloud.deleted,
+								// synced: false,
+								updated_at: cloud.updated_at
+							});
+						} else {
+							reqs.push(local);
+						}
+					}
+				}
+				let ids_only_in_cloud = (new Set(map_cloud_ids.keys())).difference((new Set(map_local_ids.keys())));
+				for (let id of ids_only_in_cloud) {
+					let cloud = map_cloud_ids.get(id);
+					dbDexie.todos.add({
+						id: id,
+						text: cloud.text,
+						done: cloud.done,
+						deleted: cloud.deleted,
+						// synced: false,
+						updated_at: cloud.updated_at,
+						created_at: cloud.created_at
+					});
+				}
+				let ids_only_in_local = (new Set(map_local_ids.keys())).difference((new Set(map_cloud_ids.keys())));
+				for (let id of ids_only_in_local) {
+					let local = map_local_ids.get(id);
+					reqs.push(local);
+				}
+				if (reqs.length > 0) {
+					sync_status = SyncStatus.syncing;
+					reqs.forEach(todo => {
+						// post todo to cloud, override if exists
+					});
+				} else {
+					sync_status = SyncStatus.synced;
 				}
 			}
 		}
-		console.log('sync_status', sync_status);
+		console.log('sync_status new', sync_status);
 		updateSyncStatus();
 	});
 	// let sync_status2 = $derived.by(()=>{
