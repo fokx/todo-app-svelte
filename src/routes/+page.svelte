@@ -5,7 +5,7 @@
 	import Todo from '$lib/components/todo-list.svelte';
 	import { derived } from 'svelte/store';
 	import { liveQuery } from 'dexie';
-	import { gen_todo_id, SyncStatus } from '$lib/utils.js';
+	import { gen_todo_id, getEnumName, SyncStatus } from '$lib/utils.js';
 	import { browser } from '$app/environment';
 
 	/** @type {{ data: import('./$types').PageData }} */
@@ -42,12 +42,16 @@
 			console.log('$todoListLocal', $todoListLocal);
 			console.log('todoListCloud', todoListCloud);
 			console.log('sync_status old', sync_status);
+			if (sync_status === SyncStatus.just_synced) {
+				return;
+			}
 			if (sync_status !== SyncStatus.syncing) {
 				if (todoListCloud === null || todoListCloud === undefined || todoListCloud.length === 0) {
 					sync_status = SyncStatus.empty;
 				} else if (todoListCloud.length === undefined) {
 					sync_status = SyncStatus.undefined;
 				} else if ($todoListLocal.length !== todoListCloud.length) {
+					console.log('$todoListLocal.length !== todoListCloud.length', $todoListLocal.length, todoListCloud.length);
 					sync_status = SyncStatus.divergent;
 				} else {
 					let all_match = $todoListLocal.every((localTodo, index) => {
@@ -66,6 +70,7 @@
 					}
 				}
 			}
+			console.log('sync_status middle', sync_status);
 			if (sync_status === SyncStatus.divergent) {
 				let reqs = [];
 				let map_local_ids = new Map($todoListLocal.map(i => [i.id, i]));
@@ -111,12 +116,13 @@
 					reqs.forEach(todo => {
 						// post todo to cloud, override if exists
 					});
+					sync_status = SyncStatus.just_synced;
 				} else {
-					sync_status = SyncStatus.synced;
+					sync_status = SyncStatus.just_synced;
 				}
 			}
+			console.log('sync_status new', sync_status);
 		}
-		console.log('sync_status new', sync_status);
 		updateSyncStatus();
 	});
 	// let sync_status2 = $derived.by(()=>{
@@ -181,43 +187,10 @@
 		if (browser) {
 			const ele = document.getElementById('sync-status');
 			if (ele) {
-				switch (sync_status) {
-					case SyncStatus.divergent:
-						ele.classList.remove(...Array.from(ele.classList).slice(1));
-						ele.textContent = 'Divergent';
-						ele.classList.add('divergent');
-						break;
-					case SyncStatus.syncing:
-						ele.classList.remove(...Array.from(ele.classList).slice(1));
-						ele.textContent = 'Syncing';
-						ele.classList.add('syncing');
-						break;
-					case SyncStatus.local:
-						ele.classList.remove(...Array.from(ele.classList).slice(1));
-						ele.textContent = 'Local';
-						ele.classList.add('local');
-						break;
-					case SyncStatus.synced:
-						ele.classList.remove(...Array.from(ele.classList).slice(1));
-						ele.textContent = 'Synced';
-						ele.classList.add('synced');
-						break;
-					case SyncStatus.empty:
-						ele.classList.remove(...Array.from(ele.classList).slice(1));
-						ele.textContent = 'Empty';
-						ele.classList.add('empty');
-						break;
-					case SyncStatus.error:
-						ele.classList.remove(...Array.from(ele.classList).slice(1));
-						ele.textContent = 'Error';
-						ele.classList.add('error');
-						break;
-					default:
-						ele.classList.remove(...Array.from(ele.classList).slice(1));
-						ele.textContent = 'Undefined';
-						ele.classList.add('undefined');
-						break;
-				}
+				ele.classList.remove(...Array.from(ele.classList).slice(1));
+				let name = getEnumName(SyncStatus, sync_status);
+				ele.textContent = name;
+				ele.classList.add(name);
 			}
 		}
 	}
