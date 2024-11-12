@@ -305,6 +305,10 @@ ul.todos button:hover {
         color: grey;
     }
 
+    .empty {
+        color: grey;
+    }
+
     .divergent {
         color: red;
     }
@@ -318,6 +322,10 @@ ul.todos button:hover {
     }
 
     .undefined {
+        color: salmon;
+    }
+
+    .error {
         color: purple;
     }
 
@@ -328,4 +336,8 @@ ul.todos button:hover {
     .offline {
         color: red;
     }
+}
+
+.delete-all-button {
+    background-color: #f96868;
 }

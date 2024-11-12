@@ -11,3 +11,7 @@ export function make_enum(arr){
 	}
 	return Object.freeze(obj);
 }
+export const SyncStatus = make_enum(['local', 'divergent', 'syncing', 'synced', 'undefined', 'empty','error']);
+export function sleep(ms) {
+	return new Promise((resolve) => setTimeout(resolve, ms ?? 200));
+}
