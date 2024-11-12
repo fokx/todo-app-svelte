@@ -106,8 +106,8 @@
 		}
 	}
 
-	function deleteAll() {
-		if (window.confirm('Warning: Do you really want to delete ALL todos?')) {
+	function deleteAllLocal() {
+		if (window.confirm('Warning: Do you really want to purge ALL todos permanently on this device? This operation is irrevocable.')) {
 			dbDexie.todos.clear();
 		}
 	}
@@ -258,7 +258,6 @@
 							onclick={(e) => deleteCompleted(e.target.form)}
 			>Remove all completed
 			</button>
-			<button aria-label="Remove all todos permanently" onclick={deleteAll} class="delete-all-button">Purge all</button>
 		</form>
 	</div>
 
@@ -270,6 +269,12 @@
 			and will get <strong>lost</strong> when you clear browsing data.</p>
 		<p>Sign in to store data in the cloud and get synced between browsers / devices.</p>
 	{/if}
+
+	<div class="danger-zone">
+		<h3>Danger Zone</h3>
+		<button aria-label="Purge ALL todos permanently on this device" onclick={deleteAllLocal}>Purge ALL local todos permanently</button>
+
+	</div>
 
 </div>
 
