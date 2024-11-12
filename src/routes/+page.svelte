@@ -122,6 +122,7 @@
 					updateOnlineStatus(event.data.online);
 				}
 				if (event.data.type === 'SYNC_STATUS') {
+					MergeRemoteAndLocal();
 					updateSyncStatus();
 				}
 			});
@@ -170,6 +171,12 @@
 						break;
 				}
 			}
+		}
+	}
+
+	function MergeRemoteAndLocal() {
+		if (sync_status === SyncStatus.divergent) {
+
 		}
 	}
 
@@ -272,7 +279,9 @@
 
 	<div class="danger-zone">
 		<h3>Danger Zone</h3>
-		<button aria-label="Purge ALL todos permanently on this device" onclick={deleteAllLocal}>Purge ALL local todos permanently</button>
+		<button aria-label="Purge ALL todos permanently on this device" onclick={deleteAllLocal}>Purge ALL local todos
+			permanently
+		</button>
 
 	</div>
 
