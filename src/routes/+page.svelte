@@ -345,7 +345,7 @@
 	</div>
 
 	{#if user}
-		<p>Currently, to view changes to your todos on <b>another</b> browser/device, you have to refresh manually.</p>
+		<p>to view changes to your todos on another browser/device, you have to wait a few seconds.</p>
 	{:else}
 		<p>⚠️ Your todos are stored in your
 			<a href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API">browser</a>
