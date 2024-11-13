@@ -50,7 +50,7 @@
 								if (result.type === 'success') {
 									dbDexie.todos.filter(t => t.id === todo.id).modify({ synced: true, updated_at: new Date() });
 									sync_status = SyncStatus.synced;
-									// should not perform update() even if succeed, otherwise the checkbox sometimes flicker
+									// if run update(), the checkbox will be unchecked just after clicking
 									// await update();
 								} else {
 									sync_status = SyncStatus.divergent;
