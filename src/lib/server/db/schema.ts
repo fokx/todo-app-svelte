@@ -2,9 +2,9 @@ import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { generateId } from 'lucia';
 
 const common_timestamps = {
-	created_at: integer({ mode: 'timestamp' }).$defaultFn(() => new Date()),
+	created_at: integer({ mode: 'timestamp' }).$default(() => new Date()),
 	deleted_at: integer({ mode: 'timestamp' }),
-	updated_at: integer({ mode: 'timestamp' }).$defaultFn(() => new Date())
+	updated_at: integer({ mode: 'timestamp' }).$onUpdate(() => new Date()),
 };
 
 const todo_extra_timestamps = {
@@ -16,7 +16,7 @@ export const todos = sqliteTable('todos', {
 	id: text('id')
 		.primaryKey()
 		.notNull()
-		.$defaultFn(() => generateId(64)),
+		.$default(() => generateId(64)),
 	user_id: integer().notNull(),
 	user_name: text({ length: 65535 }),
 	email: text({ length: 65535 }),

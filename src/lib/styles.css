@@ -257,6 +257,7 @@ ul.todos button:hover {
     align-items: center;
     gap: 1rem;
     justify-content: space-between;
+    margin: 1rem 0rem 0rem;
 }
 
 
@@ -282,7 +283,6 @@ ul.todos button:hover {
 
 .header {
     display: inline;
-
     p {
         display: inline;
     }
@@ -292,12 +292,13 @@ ul.todos button:hover {
     }
 
     .status {
-        padding: 8px;
-        border-radius: 4px;
+        padding: 5px;
+        border-radius: 3px;
         text-align: center;
         display: inline;
-        opacity: 0.8;
+        opacity: 0.9;
         border: 1px dashed #b3b3b3;
+        font-size: small;
     }
 
 

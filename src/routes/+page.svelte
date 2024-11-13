@@ -17,17 +17,16 @@
 	let todoListNotDeletedUncompletedCountLocal = $state();
 	let todoListNotDeletedCountLocal = $state();
 	let new_todo_id;
-
+	const CONFIRM_WORD = 'del';
 	let todoListLocal = liveQuery(() =>
 		dbDexie.todos.orderBy('id').desc().toArray()
 	);
 
-	let todo_s_text_local = $derived('TODO' + (todoListNotDeletedCountLocal > 1 ? 's' : ''));
 	let count_status_local = $derived((
 		(todoListNotDeletedCountLocal > 0 ?
 			(todoListNotDeletedUncompletedCountLocal > 0 ?
-				`${todoListNotDeletedUncompletedCountLocal} out of ${todoListNotDeletedCountLocal} ${todo_s_text_local} unfinished`
-				: (todoListNotDeletedCountLocal === 1 ? 'The only' : 'All') + ` ${todoListNotDeletedCountLocal} ${todo_s_text_local} finished`) : '')
+				`${todoListNotDeletedUncompletedCountLocal} out of ${todoListNotDeletedCountLocal} pending`
+				: (todoListNotDeletedCountLocal === 1 ? 'The only' : 'All') + ` ${todoListNotDeletedCountLocal} pending`) : '')
 	));
 
 	let sync_status = $state(SyncStatus.undefined);
@@ -37,7 +36,7 @@
 		todoListNotDeletedCountLocal = todos_local.filter(t => !t.deleted).length;
 
 	});
-	$effect(() => {
+	$effect(async () => {
 		if (user && $todoListLocal) {
 			console.log('$todoListLocal', $todoListLocal);
 			console.log('todoListCloud', todoListCloud);
@@ -70,58 +69,7 @@
 					}
 				}
 			}
-			console.log('sync_status middle', sync_status);
-			if (sync_status === SyncStatus.divergent) {
-				let reqs = [];
-				let map_local_ids = new Map($todoListLocal.map(i => [i.id, i]));
-				let map_cloud_ids = new Map(todoListCloud.map(i => [i.id, i]));
-				let ids_joint = (new Set(map_local_ids.keys())).intersection((new Set(map_cloud_ids.keys())));
-				for (let id of ids_joint) {
-					let local = map_local_ids.get(id);
-					let cloud = map_cloud_ids.get(id);
-					if (!(local.text === cloud.text && local.done === cloud.done && local.deleted === cloud.deleted)) {
-						if (local.updated_at < cloud.updated_at) {
-							dbDexie.todos.filter(t => t.id === id).modify({
-								text: cloud.text,
-								done: cloud.done,
-								deleted: cloud.deleted,
-								// synced: false,
-								updated_at: cloud.updated_at
-							});
-						} else {
-							reqs.push(local);
-						}
-					}
-				}
-				let ids_only_in_cloud = (new Set(map_cloud_ids.keys())).difference((new Set(map_local_ids.keys())));
-				for (let id of ids_only_in_cloud) {
-					let cloud = map_cloud_ids.get(id);
-					dbDexie.todos.add({
-						id: id,
-						text: cloud.text,
-						done: cloud.done,
-						deleted: cloud.deleted,
-						// synced: false,
-						updated_at: cloud.updated_at,
-						created_at: cloud.created_at
-					});
-				}
-				let ids_only_in_local = (new Set(map_local_ids.keys())).difference((new Set(map_cloud_ids.keys())));
-				for (let id of ids_only_in_local) {
-					let local = map_local_ids.get(id);
-					reqs.push(local);
-				}
-				if (reqs.length > 0) {
-					sync_status = SyncStatus.syncing;
-					reqs.forEach(todo => {
-						// post todo to cloud, override if exists
-					});
-					sync_status = SyncStatus.just_synced;
-				} else {
-					sync_status = SyncStatus.just_synced;
-				}
-			}
-			console.log('sync_status new', sync_status);
+			await MergeRemoteAndLocal();
 		}
 		updateSyncStatus();
 	});
@@ -161,8 +109,22 @@
 	}
 
 	function deleteAllLocal() {
-		if (window.confirm('Warning: Do you really want to purge ALL todos permanently on this device? This operation is irrevocable.')) {
+		let res = prompt(`Warning: Do you really want to purge ALL todos permanently on this device? This operation is irrevocable. Type "${CONFIRM_WORD}" without the quote to confirm.`);
+		if (res !== null && res === CONFIRM_WORD) {
 			dbDexie.todos.clear();
+		}
+	}
+
+	async function deleteAllCloudAndLocal() {
+		let res = prompt(`Warning: Do you really want to purge ALL todos permanently both on this device and in the cloud? This operation is irrevocable. Type "${CONFIRM_WORD}" without the quote to confirm.`);
+		if (res !== null && res === CONFIRM_WORD) {
+			dbDexie.todos.clear();
+			const response = await fetch('/api/delete-all', {
+				method: 'POST'
+			});
+			if (response.status === 200) {
+				alert('All todos have been successfully purged.');
+			}
 		}
 	}
 
@@ -171,12 +133,12 @@
 			alert('This todo app is not unsupported on this browser. \nReason: Indexed DB is not supported!');
 		}
 		if ('serviceWorker' in navigator) {
-			navigator.serviceWorker.addEventListener('message', event => {
+			navigator.serviceWorker.addEventListener('message', async event => {
 				if (event.data.type === 'ONLINE_STATUS') {
 					updateOnlineStatus(event.data.online);
 				}
 				if (event.data.type === 'SYNC_STATUS') {
-					MergeRemoteAndLocal();
+					await MergeRemoteAndLocal();
 					updateSyncStatus();
 				}
 			});
@@ -189,16 +151,72 @@
 			if (ele) {
 				ele.classList.remove(...Array.from(ele.classList).slice(1));
 				let name = getEnumName(SyncStatus, sync_status);
-				ele.textContent = name;
+				ele.textContent = name.replace('_', ' ');
 				ele.classList.add(name);
 			}
 		}
 	}
 
-	function MergeRemoteAndLocal() {
-		if (sync_status === SyncStatus.divergent) {
-
+	async function MergeRemoteAndLocal() {
+		console.log('sync_status middle', sync_status);
+		if (true) { // sync_status === SyncStatus.divergent
+			let update_jobs = [];
+			let map_local_ids = new Map($todoListLocal.map(i => [i.id, i]));
+			let map_cloud_ids = new Map(todoListCloud.map(i => [i.id, i]));
+			let ids_joint = (new Set(map_local_ids.keys())).intersection((new Set(map_cloud_ids.keys())));
+			for (let id of ids_joint) {
+				let local = map_local_ids.get(id);
+				let cloud = map_cloud_ids.get(id);
+				if (!(local.text === cloud.text && local.done === cloud.done && local.deleted === cloud.deleted)) {
+					if (local.updated_at < cloud.updated_at) {
+						dbDexie.todos.filter(t => t.id === id).modify({
+							text: cloud.text,
+							done: cloud.done,
+							deleted: cloud.deleted,
+							// synced: false,
+							updated_at: cloud.updated_at
+						});
+					} else {
+						update_jobs.push(local);
+					}
+				}
+			}
+			let ids_only_in_cloud = (new Set(map_cloud_ids.keys())).difference((new Set(map_local_ids.keys())));
+			for (let id of ids_only_in_cloud) {
+				let cloud = map_cloud_ids.get(id);
+				dbDexie.todos.add({
+					id: id,
+					text: cloud.text,
+					done: cloud.done,
+					deleted: cloud.deleted,
+					// synced: false,
+					updated_at: cloud.updated_at,
+					created_at: cloud.created_at
+				});
+			}
+			let ids_only_in_local = (new Set(map_local_ids.keys())).difference((new Set(map_cloud_ids.keys())));
+			for (let id of ids_only_in_local) {
+				let local = map_local_ids.get(id);
+				update_jobs.push(local);
+			}
+			if (update_jobs.length > 0) {
+				sync_status = SyncStatus.syncing;
+				const response = await fetch('/api/sync-data', {
+					// headers: {
+					// 	'Content-Type': 'application/json'
+					// },
+					method: 'POST',
+					body: JSON.stringify(update_jobs)
+				});
+				console.log('response', response);
+				// const result = response.json();
+				// console.log('result', result);
+				sync_status = SyncStatus.just_synced;
+			} else {
+				sync_status = SyncStatus.just_synced;
+			}
 		}
+		console.log('sync_status new', sync_status);
 	}
 
 	function updateOnlineStatus(isOnline) {
@@ -207,14 +225,14 @@
 			if (isOnline) {
 				console.log('online');
 				if (statusElement) {
-					statusElement.textContent = 'Online';
+					statusElement.textContent = 'online';
 					statusElement.classList.add('online');
 					statusElement.classList.remove('offline');
 				}
 			} else {
 				console.log('offline');
 				if (statusElement) {
-					statusElement.textContent = 'Offline';
+					statusElement.textContent = 'offline';
 					statusElement.classList.add('offline');
 					statusElement.classList.remove('online');
 				}
@@ -232,14 +250,12 @@
 </style>
 
 <div class="centered">
+	<h2>{user ? user.username + "'s" : "My"} TODO List</h2>
 	<div class="header">
-		<h2>{user ? user.username + "'s" : "My"} TODO List</h2>
+		<p>{count_status_local}</p>
 		<div class="status" id="sync-status"></div>
 		<div class="status" id="online-status">online?</div>
-
 	</div>
-
-	<p>{count_status_local}</p>
 
 	<form action="?/createpost" class="input-form" method="post" use:enhance={({ formElement, formData, action, cancel, submitter }) => {
 			formData.append('id', new_todo_id);
@@ -300,10 +316,12 @@
 
 	<div class="danger-zone">
 		<h3>Danger Zone</h3>
-		<button aria-label="Purge ALL todos permanently on this device" onclick={deleteAllLocal}>Purge ALL local todos
-			permanently
+		<button aria-label="Purge ALL todos permanently on this device" onclick={deleteAllLocal}>purge all <em>local</em>
+			todos
 		</button>
-
+		<button aria-label="Purge ALL todos permanently (including all my cloud data)" onclick={deleteAllCloudAndLocal}>
+			purge ALL todos
+		</button>
 	</div>
 
 </div>

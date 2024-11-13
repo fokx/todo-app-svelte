@@ -41,7 +41,7 @@ export const actions = {
 	editTodo: async function ({ locals, request }) {
 		let user = locals.user;
 		const formData = await request.formData();
-		if (user) {
+		if (user && formData.get('new_text')) {
 			await db
 				.update(todos)
 				.set({ text: formData.get('new_text') })

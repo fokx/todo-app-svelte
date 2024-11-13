@@ -1,6 +1,6 @@
 <script>
 	import { dbDexie } from '$lib/db-dexie.js';
-	import { fade } from 'svelte/transition';
+	import { fly, slide } from 'svelte/transition';
 	import { enhance } from '$app/forms';
 	import { SyncStatus } from '$lib/utils.js';
 
@@ -19,7 +19,6 @@
 			sync_status = SyncStatus.syncing;
 			dbDexie.todos.filter(t => t.id === index).modify({ deleted: true, synced: false, updated_at: new Date() });
 		}
-
 	}
 
 
@@ -27,17 +26,6 @@
 		let done = ev.target.checked;
 		sync_status = SyncStatus.syncing;
 		dbDexie.todos.update(index, { done: done, synced: false, updated_at: new Date() });
-	}
-
-	async function editTodo(e, index) {
-		await dbDexie.todos.get({ id: index }).then(function(result) {
-			new_text = prompt(`Change "${result.text}" to:`, result.text);
-			if (new_text !== null && new_text !== '') {
-				sync_status = SyncStatus.syncing;
-				dbDexie.todos.update(index, { text: new_text, synced: false, updated_at: new Date() });
-			}
-		});
-
 	}
 
 	export function handleCheckboxChange(e, id) {
@@ -53,7 +41,8 @@
 		<li>---Nothing yet---</li>
 	{:else }
 		{#each todoListSorted as todo, index (todo.id)}
-			<li transition:fade={{  duration: 100}}>
+			<!--			<li transition:fade={{  duration: 100}}>-->
+			<li in:fly={{ y: 20 }} out:slide>
 				{#if !isDeletedListPage}
 					<form
 						method="POST"
@@ -85,7 +74,16 @@
 				<!--<input class:checked={todo.done} type="text" name="tmp" value={todo.text}/>-->
 
 				<div class="right-buttons">
-					<form method="post" action="?/editTodo" use:enhance={({formData, cancel}) => {
+					<form method="post" action="?/editTodo" use:enhance={async ({formData, cancel}) => {
+						await dbDexie.todos.get({ id: todo.id }).then(function(result) {
+							new_text = prompt(`Change "${result.text}" to:`, result.text);
+							if (new_text !== null && new_text !== '' && new_text !== result.text) {
+								sync_status = SyncStatus.syncing;
+								dbDexie.todos.update(todo.id, { text: new_text, synced: false, updated_at: new Date() });
+							} else{
+								cancel();
+							}
+						});
 						if (user) {
 							formData.set('new_text', new_text);
 							return async ({ result, update }) => {
@@ -101,7 +99,7 @@
 					}}>
 						<input type="hidden" name="id" value={todo.id} />
 						<button aria-label="edit todo" style="background: url(./edit.svg) no-repeat 50% 50%;"
-										class="filter-svg" onclick={(e)=>editTodo(e, todo.id)}></button>
+										class="filter-svg"></button>
 					</form>
 
 					{#if !isDeletedListPage}
