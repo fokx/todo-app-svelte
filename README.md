@@ -4,8 +4,6 @@ An offline-first TODO app built with SvelteKit, with automatic data synchronizat
 
 ## Develop / Deploy 
 
-To create a production version of your app:
-
 ```bash
 pnpm i
 pnpm push:db
