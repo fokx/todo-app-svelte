@@ -7,15 +7,19 @@ export const actions = {
 		let user = locals.user;
 		const formData = await request.formData();
 		if (user) {
-			const newPost = await db.insert(todos).values({
-				id: formData.get('id'),
-				user_id: user.id,
-				text: formData.get('content'),
-				done: false,
-				deleted: false,
-				synced: true,
-				user_agent: request.headers['user-agent']
-			});
+			try {
+				await db.insert(todos).values({
+					id: formData.get('id'),
+					user_id: user.id,
+					text: formData.get('content'),
+					done: false,
+					deleted: false,
+					synced: true,
+					user_agent: request.headers['user-agent']
+				});
+			} catch (e) {
+				console.log('error when creating post', e);
+			}
 		}
 	},
 	deleteTodo: async function ({ locals, request }) {

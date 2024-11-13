@@ -28,11 +28,11 @@
 	let sync_status = $state(SyncStatus.unknown);
 	let count_status_local = $state();
 	todoListLocal.subscribe((todos_local) => {
-		todoListNotDeletedLocal = todos_local.filter(t => !t.deleted);
-		todoListNotDeletedUncompletedCountLocal = todos_local.filter(t => !t.deleted).filter(t => !t.done).length;
-		todoListNotDeletedCountLocal = todos_local.filter(t => !t.deleted).length;
-	// });
-	// let count_status_local = $derived.by(() => {
+			todoListNotDeletedLocal = todos_local.filter(t => !t.deleted);
+			todoListNotDeletedUncompletedCountLocal = todos_local.filter(t => !t.deleted).filter(t => !t.done).length;
+			todoListNotDeletedCountLocal = todos_local.filter(t => !t.deleted).length;
+			// });
+			// let count_status_local = $derived.by(() => {
 			let res;
 			if (todoListNotDeletedCountLocal > 0) {
 				if (todoListNotDeletedUncompletedCountLocal === 0) {
@@ -92,28 +92,6 @@
 		just_synced = true;
 	});
 
-	function addToListhandleKeydown(e) {
-		if (e.target.form.key === 'Enter') {
-			if (newItem) {
-				addToList(e.target.form);
-			}
-		}
-	}
-
-	async function addToList(form) {
-		new_todo_id = gen_todo_id();
-		sync_status = SyncStatus.syncing;
-		dbDexie.todos.add({
-			id: new_todo_id,
-			user_id: user ? user.id : null,
-			text: newItem,
-			done: false,
-			deleted: false,
-			synced: false,
-			created_at: new Date(),
-			updated_at: new Date()
-		});
-	}
 
 	function deleteCompleted(form) {
 		if (window.confirm('Do you really want to delete all completed todos?')) {
@@ -297,23 +275,45 @@
 	</div>
 
 	<form action="?/createpost" class="input-form" method="post" use:enhance={({ formElement, formData, action, cancel, submitter }) => {
-			formData.append('id', new_todo_id);
-			return async ({ result, update }) => {
-				if (result.type === 'success') {
-					dbDexie.todos.filter(t => t.id === new_todo_id).modify({ synced: true, updated_at: new Date() });
-					sync_status = SyncStatus.synced;
-					// await invalidateAll();
-					// await sleep(5000);
-					await update();
-				} else {
-					sync_status = SyncStatus.divergent;
-				}
-			};
+		// debounce the form submission
+		formElement.addEventListener('submit', (e) => {
+			e.preventDefault();
+			e.target.reset(); // clear the input after submission
+		});
+		if (window.preventDuplicateKeyPresses) {
+			return;
+		}
+		window.preventDuplicateKeyPresses = true;
+		window.setTimeout(function() { window.preventDuplicateKeyPresses = false; }, 500 );
+
+		new_todo_id = gen_todo_id();
+		sync_status = SyncStatus.syncing;
+		dbDexie.todos.add({
+			id: new_todo_id,
+			user_id: user ? user.id : null,
+			text: newItem,
+			done: false,
+			deleted: false,
+			synced: false,
+			created_at: new Date(),
+			updated_at: new Date()
+		});
+		formData.append('id', new_todo_id);
+		return async ({ result, update }) => {
+			if (result.type === 'success') {
+				dbDexie.todos.filter(t => t.id === new_todo_id).modify({ synced: true, updated_at: new Date() });
+				sync_status = SyncStatus.synced;
+				// await invalidateAll();
+				// await sleep(5000);
+				newItem='';
+				await update();
+			} else {
+				sync_status = SyncStatus.divergent;
+			}
+		};
 	}}>
-		<input bind:value={newItem} name="content" onkeydown={(e) => addToListhandleKeydown(e)}
-					 placeholder="new todo item.." required
-					 type="text" />
-		<button aria-label="Add" disabled={!newItem} onclick={(e) => addToList(e.target.form)}>Add</button>
+		<input bind:value={newItem} name="content" placeholder="new todo item.." required type="text" />
+		<button aria-label="Add" disabled={!newItem}>Add</button>
 	</form>
 
 	<br />
