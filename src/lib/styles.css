@@ -344,6 +344,7 @@ ul.todos button:hover {
     border: 1px dashed #f00;
     padding: 1em;
     display: block;
+    gap: 2rem;
     button {
         border: 1px ridge #f00;
         border-radius: 5px;

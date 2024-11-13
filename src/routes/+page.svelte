@@ -118,12 +118,15 @@
 	async function deleteAllCloudAndLocal() {
 		let res = prompt(`Warning: Do you really want to purge ALL todos permanently both on this device and in the cloud? This operation is irrevocable. Type "${CONFIRM_WORD}" without the quote to confirm.`);
 		if (res !== null && res === CONFIRM_WORD) {
-			dbDexie.todos.clear();
-			const response = await fetch('/api/delete-all', {
+			const response = await fetch('/api/purge-all', {
 				method: 'POST'
 			});
 			if (response.status === 200) {
+				dbDexie.todos.clear();
 				alert('All todos have been successfully purged.');
+			} else {
+				const { message } = await response.json();
+				alert(message);
 			}
 		}
 	}
@@ -202,15 +205,15 @@
 			if (update_jobs.length > 0) {
 				sync_status = SyncStatus.syncing;
 				const response = await fetch('/api/sync-data', {
-					// headers: {
-					// 	'Content-Type': 'application/json'
-					// },
 					method: 'POST',
-					body: JSON.stringify(update_jobs)
+					body: JSON.stringify(update_jobs),
+					headers: {
+						'Content-Type': 'application/json'
+					}
 				});
 				console.log('response', response);
-				// const result = response.json();
-				// console.log('result', result);
+				const { message } = await response.json();
+				console.log('message', message);
 				sync_status = SyncStatus.just_synced;
 			} else {
 				sync_status = SyncStatus.just_synced;
