@@ -17,9 +17,10 @@ export function getEnumName(enumObj, value) {
 			return key;
 		}
 	}
-	return null; // or throw an error if the value is not found
+	throw new Error(`Unknown value ${value}`);
+	// return null;
 }
-export const SyncStatus = make_enum(['local', 'divergent', 'syncing', 'synced', 'undefined', 'empty','error', 'just_synced']);
+export const SyncStatus = make_enum(['local', 'divergent', 'syncing', 'synced', 'unknown', 'empty','error', 'just_synced', 'failed']);
 export function sleep(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms ?? 200));
 }

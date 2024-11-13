@@ -283,6 +283,7 @@ ul.todos button:hover {
 
 .header {
     display: inline;
+
     p {
         display: inline;
     }
@@ -307,7 +308,7 @@ ul.todos button:hover {
     }
 
     .empty {
-        color: grey;
+        color: darkseagreen;
     }
 
     .divergent {
@@ -322,8 +323,16 @@ ul.todos button:hover {
         color: green;
     }
 
+    .just_synced {
+        color: olive;
+    }
+
     .undefined {
         color: salmon;
+    }
+
+    .failed {
+        color: deeppink;
     }
 
     .error {
@@ -345,11 +354,13 @@ ul.todos button:hover {
     padding: 1em;
     display: block;
     gap: 2rem;
+
     button {
         border: 1px ridge #f00;
         border-radius: 5px;
         background-color: #f9f3f3;
     }
+
     button:hover {
         background: #fa7a7a;
     }

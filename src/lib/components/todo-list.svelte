@@ -37,9 +37,7 @@
 </script>
 
 <ul class="todos">
-	{#if !todoListSorted || todoListSorted.length === 0}
-		<li>---Nothing yet---</li>
-	{:else }
+	{#if todoListSorted?.length}
 		{#each todoListSorted as todo, index (todo.id)}
 			<!--			<li transition:fade={{  duration: 100}}>-->
 			<li in:fly={{ y: 20 }} out:slide>
@@ -52,11 +50,11 @@
 								if (result.type === 'success') {
 									dbDexie.todos.filter(t => t.id === todo.id).modify({ synced: true, updated_at: new Date() });
 									sync_status = SyncStatus.synced;
-									await update();
+									// should not perform update() even if succeed, otherwise the checkbox sometimes flicker
+									// await update();
 								} else {
 									sync_status = SyncStatus.divergent;
 								}
-								// should not perform update() even if succeed, otherwise the checkbox sometimes flicker
 							};
 					}}>
 						<input

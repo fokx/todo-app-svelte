@@ -16,7 +16,7 @@
 	todoListLocal.subscribe((todos) => {
 		todoListDeletedLocal = todos.filter(t => t.deleted);
 	});
-	let sync_status = $state(SyncStatus.undefined);
+	let sync_status = $state(SyncStatus.unknown);
 
 	// let todoListDeleted = $derived(data.cloud_posts?.filter(t => t.deleted));
 </script>

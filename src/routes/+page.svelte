@@ -7,6 +7,7 @@
 	import { liveQuery } from 'dexie';
 	import { gen_todo_id, getEnumName, SyncStatus } from '$lib/utils.js';
 	import { browser } from '$app/environment';
+	import { invalidateAll } from '$app/navigation';
 
 	/** @type {{ data: import('./$types').PageData }} */
 	let { data } = $props();
@@ -18,42 +19,58 @@
 	let todoListNotDeletedCountLocal = $state();
 	let new_todo_id;
 	const CONFIRM_WORD = 'del';
+	let previously_offline = false;
+	let just_synced = false;
 	let todoListLocal = liveQuery(() =>
 		dbDexie.todos.orderBy('id').desc().toArray()
 	);
 
-	let count_status_local = $derived((
-		(todoListNotDeletedCountLocal > 0 ?
-			(todoListNotDeletedUncompletedCountLocal > 0 ?
-				`${todoListNotDeletedUncompletedCountLocal} out of ${todoListNotDeletedCountLocal} pending`
-				: (todoListNotDeletedCountLocal === 1 ? 'The only' : 'All') + ` ${todoListNotDeletedCountLocal} pending`) : '')
-	));
-
-	let sync_status = $state(SyncStatus.undefined);
+	let sync_status = $state(SyncStatus.unknown);
+	let count_status_local = $state();
 	todoListLocal.subscribe((todos_local) => {
 		todoListNotDeletedLocal = todos_local.filter(t => !t.deleted);
 		todoListNotDeletedUncompletedCountLocal = todos_local.filter(t => !t.deleted).filter(t => !t.done).length;
 		todoListNotDeletedCountLocal = todos_local.filter(t => !t.deleted).length;
+	// });
+	// let count_status_local = $derived.by(() => {
+			let res;
+			if (todoListNotDeletedCountLocal > 0) {
+				if (todoListNotDeletedUncompletedCountLocal === 0) {
+					res = 'All completed';
+				} else if (todoListNotDeletedUncompletedCountLocal === todoListNotDeletedCountLocal) {
+					res = 'None completed';
+				} else {
+					res = `${todoListNotDeletedUncompletedCountLocal} / ${todoListNotDeletedCountLocal} uncompleted`;
+				}
+			} else {
+				// <span style="display: block;  text-align: center;"><em>* Nothing yet *</em></span>;
+				res = '';
+			}
+			count_status_local = res;
+		}
+	);
 
-	});
 	$effect(async () => {
 		if (user && $todoListLocal) {
-			console.log('$todoListLocal', $todoListLocal);
-			console.log('todoListCloud', todoListCloud);
-			console.log('sync_status old', sync_status);
-			if (sync_status === SyncStatus.just_synced) {
+			// console.log('$todoListLocal', $todoListLocal);
+			// console.log('todoListCloud', todoListCloud);
+			// console.log('sync_status old', sync_status);
+			if (just_synced) {
+				just_synced = false;
 				return;
 			}
 			if (sync_status !== SyncStatus.syncing) {
-				if (todoListCloud === null || todoListCloud === undefined || todoListCloud.length === 0) {
+				if ($todoListLocal.length === 0 && todoListCloud.length === 0) {
 					sync_status = SyncStatus.empty;
-				} else if (todoListCloud.length === undefined) {
-					sync_status = SyncStatus.undefined;
+				} else if (user && (todoListCloud?.length === undefined || todoListCloud === null)) {
+					// logged in, but no cloud data
+					sync_status = SyncStatus.error;
 				} else if ($todoListLocal.length !== todoListCloud.length) {
-					console.log('$todoListLocal.length !== todoListCloud.length', $todoListLocal.length, todoListCloud.length);
+					// console.log('$todoListLocal.length !== todoListCloud.length', $todoListLocal.length, todoListCloud.length);
 					sync_status = SyncStatus.divergent;
 				} else {
 					let all_match = $todoListLocal.every((localTodo, index) => {
+						// in this branch, length is the same, also assert that the order is the same
 						const cloudTodo = todoListCloud[index];
 						return (
 							localTodo.id === cloudTodo.id &&
@@ -72,9 +89,9 @@
 			await MergeRemoteAndLocal();
 		}
 		updateSyncStatus();
+		just_synced = true;
 	});
-	// let sync_status2 = $derived.by(()=>{
-	// })
+
 	function addToListhandleKeydown(e) {
 		if (e.target.form.key === 'Enter') {
 			if (newItem) {
@@ -88,6 +105,7 @@
 		sync_status = SyncStatus.syncing;
 		dbDexie.todos.add({
 			id: new_todo_id,
+			user_id: user ? user.id : null,
 			text: newItem,
 			done: false,
 			deleted: false,
@@ -102,7 +120,11 @@
 			sync_status = SyncStatus.syncing;
 			todoListNotDeletedLocal.forEach(todo => {
 				if (todo.done) {
-					dbDexie.todos.filter(t => t.id === todo.id).modify({ deleted: true, synced: false, updated_at: new Date() });
+					dbDexie.todos.filter(t => t.id === todo.id).modify({
+						deleted: true,
+						synced: false,
+						updated_at: new Date()
+					});
 				}
 			});
 		}
@@ -138,14 +160,24 @@
 		if ('serviceWorker' in navigator) {
 			navigator.serviceWorker.addEventListener('message', async event => {
 				if (event.data.type === 'ONLINE_STATUS') {
-					updateOnlineStatus(event.data.online);
+					setOnlineIndicator(event.data.online);
+					if (!event.data.online) {
+						previously_offline = true;
+					} else {
+						if (previously_offline) {
+							previously_offline = false;
+							invalidateAll();
+							await MergeRemoteAndLocal();
+						}
+					}
 				}
 				if (event.data.type === 'SYNC_STATUS') {
+					invalidateAll();
 					await MergeRemoteAndLocal();
-					updateSyncStatus();
 				}
 			});
 		}
+		setOnlineIndicator(true);
 	});
 
 	function updateSyncStatus() {
@@ -154,86 +186,92 @@
 			if (ele) {
 				ele.classList.remove(...Array.from(ele.classList).slice(1));
 				let name = getEnumName(SyncStatus, sync_status);
-				ele.textContent = name.replace('_', ' ');
+				if (name === 'unknown') {
+					ele.textContent = 'synced?';
+				} else {
+					ele.textContent = name.replace('_', ' ');
+				}
 				ele.classList.add(name);
 			}
 		}
 	}
 
 	async function MergeRemoteAndLocal() {
-		console.log('sync_status middle', sync_status);
-		if (true) { // sync_status === SyncStatus.divergent
-			let update_jobs = [];
-			let map_local_ids = new Map($todoListLocal.map(i => [i.id, i]));
-			let map_cloud_ids = new Map(todoListCloud.map(i => [i.id, i]));
-			let ids_joint = (new Set(map_local_ids.keys())).intersection((new Set(map_cloud_ids.keys())));
-			for (let id of ids_joint) {
-				let local = map_local_ids.get(id);
-				let cloud = map_cloud_ids.get(id);
-				if (!(local.text === cloud.text && local.done === cloud.done && local.deleted === cloud.deleted)) {
-					if (local.updated_at < cloud.updated_at) {
-						dbDexie.todos.filter(t => t.id === id).modify({
-							text: cloud.text,
-							done: cloud.done,
-							deleted: cloud.deleted,
-							// synced: false,
-							updated_at: cloud.updated_at
-						});
-					} else {
-						update_jobs.push(local);
-					}
+		if (!user) {
+			return;
+		}
+		let update_jobs = [];
+		let map_local_ids = new Map($todoListLocal.map(i => [i.id, i]));
+		let map_cloud_ids = new Map(todoListCloud.map(i => [i.id, i]));
+		let ids_joint = (new Set(map_local_ids.keys())).intersection((new Set(map_cloud_ids.keys())));
+		for (let id of ids_joint) {
+			let local = map_local_ids.get(id);
+			let cloud = map_cloud_ids.get(id);
+			if (!(local.text === cloud.text && local.done === cloud.done && local.deleted === cloud.deleted)) {
+				if (local.updated_at < cloud.updated_at) {
+					dbDexie.todos.filter(t => t.id === id).modify({
+						text: cloud.text,
+						done: cloud.done,
+						deleted: cloud.deleted,
+						// synced: false,
+						updated_at: cloud.updated_at
+					});
+				} else {
+					update_jobs.push(local);
 				}
 			}
-			let ids_only_in_cloud = (new Set(map_cloud_ids.keys())).difference((new Set(map_local_ids.keys())));
-			for (let id of ids_only_in_cloud) {
-				let cloud = map_cloud_ids.get(id);
-				dbDexie.todos.add({
-					id: id,
-					text: cloud.text,
-					done: cloud.done,
-					deleted: cloud.deleted,
-					// synced: false,
-					updated_at: cloud.updated_at,
-					created_at: cloud.created_at
-				});
-			}
-			let ids_only_in_local = (new Set(map_local_ids.keys())).difference((new Set(map_cloud_ids.keys())));
-			for (let id of ids_only_in_local) {
-				let local = map_local_ids.get(id);
-				update_jobs.push(local);
-			}
-			if (update_jobs.length > 0) {
-				sync_status = SyncStatus.syncing;
-				const response = await fetch('/api/sync-data', {
-					method: 'POST',
-					body: JSON.stringify(update_jobs),
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				});
-				console.log('response', response);
-				const { message } = await response.json();
-				console.log('message', message);
+		}
+		let ids_only_in_cloud = (new Set(map_cloud_ids.keys())).difference((new Set(map_local_ids.keys())));
+		for (let id of ids_only_in_cloud) {
+			let cloud = map_cloud_ids.get(id);
+			dbDexie.todos.add({
+				id: id,
+				user_id: cloud.user_id,
+				text: cloud.text,
+				done: cloud.done,
+				deleted: cloud.deleted,
+				synced: true,
+				updated_at: cloud.updated_at,
+				created_at: cloud.created_at
+			});
+		}
+		let ids_only_in_local = (new Set(map_local_ids.keys())).difference((new Set(map_cloud_ids.keys())));
+		for (let id of ids_only_in_local) {
+			let local = map_local_ids.get(id);
+			local.user_id = user.id;
+			update_jobs.push(local);
+		}
+		if (update_jobs.length > 0) {
+			const response = await fetch('/api/sync-data', {
+				method: 'POST',
+				body: JSON.stringify(update_jobs),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (response.status === 200) {
 				sync_status = SyncStatus.just_synced;
 			} else {
-				sync_status = SyncStatus.just_synced;
+				sync_status = SyncStatus.failed;
+				const { message } = await response.json();
+				// console.log('message', message);
 			}
 		}
-		console.log('sync_status new', sync_status);
+		updateSyncStatus();
 	}
 
-	function updateOnlineStatus(isOnline) {
+	function setOnlineIndicator(isOnline) {
 		if (browser) {
 			const statusElement = document.getElementById('online-status');
 			if (isOnline) {
-				console.log('online');
+				// console.log('online');
 				if (statusElement) {
 					statusElement.textContent = 'online';
 					statusElement.classList.add('online');
 					statusElement.classList.remove('offline');
 				}
 			} else {
-				console.log('offline');
+				// console.log('offline');
 				if (statusElement) {
 					statusElement.textContent = 'offline';
 					statusElement.classList.add('offline');
@@ -243,8 +281,6 @@
 		}
 	}
 
-	updateOnlineStatus(true);
-	updateSyncStatus();
 
 </script>
 
